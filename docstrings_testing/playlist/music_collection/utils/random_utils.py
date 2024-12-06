@@ -1,13 +1,15 @@
 import logging
 import requests
 
-from music_collection.utils.logger import configure_logger
+# from music_collection.utils.logger import configure_logger
 
 logger = logging.getLogger(__name__)
-configure_logger(logger)
+# configure_logger(logger)
 
 
-def get_random(num_songs: int) -> int:
+
+
+def get_article(keyword: str) -> str:
     """
     Fetches a random int between 1 and the number of songs in the catalog from random.org.
 
@@ -18,31 +20,33 @@ def get_random(num_songs: int) -> int:
         RuntimeError: If the request to random.org fails or returns an invalid response.
         ValueError: If the response from random.org is not a valid float.
     """
-    url = f"https://www.random.org/integers/?num=1&min=1&max={num_songs}&col=1&base=10&format=plain&rnd=new"
+    url = f"https://newsapi.org/v2/everything?q={keyword}&pagesize=1&apiKey=e616acff8a674cfc8ba4648026e85f1d"
 
     try:
         # Log the request to random.org
-        logger.info("Fetching random number from %s", url)
+        logger.info("Fetching article from %s", url)
 
         response = requests.get(url, timeout=5)
 
         # Check if the request was successful
         response.raise_for_status()
 
-        random_number_str = response.text.strip()
+        article = response.text.strip()
 
-        try:
-            random_number = int(random_number_str)
-        except ValueError:
-            raise ValueError("Invalid response from random.org: %s" % random_number_str)
+        # try:
+        #     random_number = int(random_number_str)
+        # except ValueError:
+        #     raise ValueError("Invalid response from random.org: %s" % random_number_str)
 
-        logger.info("Received random number: %.3f", random_number)
-        return random_number
+        print("Received article: %.3f", article)
+        return article
 
     except requests.exceptions.Timeout:
-        logger.error("Request to random.org timed out.")
-        raise RuntimeError("Request to random.org timed out.")
+        logger.error("Request to newsapi.org timed out.")
+        raise RuntimeError("Request to newsapi.org timed out.")
 
     except requests.exceptions.RequestException as e:
-        logger.error("Request to random.org failed: %s", e)
-        raise RuntimeError("Request to random.org failed: %s" % e)
+        logger.error("Request to newsapi.org failed: %s", e)
+        raise RuntimeError("Request to newsapi.org failed: %s" % e)
+
+get_article("tesla")
