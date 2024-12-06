@@ -7,8 +7,8 @@ logger = logging.getLogger(__name__)
 configure_logger(logger)
 
 
-def get_random() -> float:
-    url = "https://www.random.org/decimal-fractions/?num=1&dec=2&col=1&format=plain&rnd=new"
+def get_random() -> str:
+    url = "https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d"
 
     try:
         # Log the request to random.org
