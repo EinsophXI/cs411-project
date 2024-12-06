@@ -13,17 +13,16 @@ configure_logger(logger)
 
 
 @dataclass
-class Song:
-    id: int
-    artist: str
+class Article:
+    name: str
+    author: str
     title: str
-    year: int
-    genre: str
-    duration: int  # in seconds
+    description: str
+    url: str
+    publishedAt: str
+    content: str
 
     def __post_init__(self):
-        if self.duration <= 0:
-            raise ValueError(f"Duration must be greater than 0, got {self.duration}")
         if self.year <= 1900:
             raise ValueError(f"Year must be greater than 1900, got {self.year}")
 
