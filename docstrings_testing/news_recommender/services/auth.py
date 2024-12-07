@@ -22,3 +22,21 @@ def verify_user(session, username: str, password: str):
         stored_salt = stored_user.salt
         return bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8'))
     return False
+
+# Update new password
+def update_password(session, username: str, current_password: str, new_password: str):
+    stored_user = session.query(User).filter_by(username=username).first()
+
+    if stored_user:
+        # Verify the current password
+        if bcrypt.checkpw(current_password.encode('utf-8'), stored_user.hashed_password.encode('utf-8')):
+            # If current password is correct, hash the new password and update the record
+            salt, hashed_new_password = hash_password(new_password)
+            stored_user.salt = salt.decode('utf-8')
+            stored_user.hashed_password = hashed_new_password.decode('utf-8')
+            session.commit()
+            return True  # Successfully updated the password
+        else:
+            return False  # Current password is incorrect
+    else:
+        return False  # User not found
