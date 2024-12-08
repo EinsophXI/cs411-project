@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-def get_article(keyword: str) -> str:
+def get_articles_info(keyword: str, num_arts: int) -> str:
     """
     Fetches an article related to the given keyword from the NewsAPI.
     
@@ -21,7 +21,7 @@ def get_article(keyword: str) -> str:
         RuntimeError: If the request to the API fails.
     """
     api_key = os.getenv("NEWS_API_KEY", "e616acff8a674cfc8ba4648026e85f1d")  # Load API key from environment variables
-    url = f"https://newsapi.org/v2/everything?q={keyword}&pageSize=1&apiKey={api_key}"
+    url = f"https://newsapi.org/v2/everything?q={keyword}&pageSize={num_arts}&apiKey={api_key}"
 
     try:
         logger.info("Fetching article from %s", url)
@@ -65,9 +65,52 @@ def get_article(keyword: str) -> str:
         logger.error("Invalid response received: %s", e)
         raise RuntimeError(f"Invalid response received: {e}")
 
+def get_articles(keyword: str, num_arts: int) -> str:
+    """
+    Fetches an article related to the given keyword from the NewsAPI.
+    
+    Args:
+        keyword (str): The keyword to search for articles.
+        
+    Returns:
+        str: The title and description of the first article found.
+    
+    Raises:
+        RuntimeError: If the request to the API fails.
+    """
+    api_key = os.getenv("NEWS_API_KEY", "e616acff8a674cfc8ba4648026e85f1d")  # Load API key from environment variables
+    url = f"https://newsapi.org/v2/everything?q={keyword}&pageSize={num_arts}&apiKey={api_key}"
+
+    try:
+        logger.info("Fetching article from %s", url)
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        if 'articles' in data and data['articles']:
+            article = data['articles'][0]            
+            logger.info("Received article: %s", article)
+            return article
+        else:
+            logger.warning("No articles found for keyword: %s", keyword)
+            return "No articles found."
+
+    except requests.exceptions.Timeout:
+        logger.error("Request to newsapi.org timed out.")
+        raise RuntimeError("Request to newsapi.org timed out.")
+    except requests.exceptions.RequestException as e:
+        logger.error("Request to newsapi.org failed: %s", e)
+        raise RuntimeError(f"Request to newsapi.org failed: {e}")
+    except ValueError as e:
+        logger.error("Invalid response received: %s", e)
+        raise RuntimeError(f"Invalid response received: {e}")
+
+
 if __name__ == "__main__":
     keyword = "tesla"
     try:
-        print(get_article(keyword))
+        print(get_articles_info(keyword, 1))
+        print(get_articles(keyword, 1))
     except RuntimeError as e:
         logger.error("Error fetching article: %s", e)
