@@ -4,16 +4,16 @@ import sqlite3
 
 import pytest
 
-from music_collection.models.song_model import (
-    Song,
-    create_song,
-    clear_catalog,
-    delete_song,
-    get_song_by_id,
-    get_song_by_compound_key,
-    get_all_songs,
-    get_random_song,
-    update_play_count
+from news_recommender.models.article_model import (
+    Article,
+    create_article,
+    #clear_catalog,
+    #delete_song,
+    #get_song_by_id,
+    #get_song_by_compound_key,
+    #get_all_songs,
+    #get_random_song,
+    #update_play_count
 )
 
 ######################################################
@@ -42,7 +42,7 @@ def mock_cursor(mocker):
     def mock_get_db_connection():
         yield mock_conn  # Yield the mocked connection object
 
-    mocker.patch("music_collection.models.song_model.get_db_connection", mock_get_db_connection)
+    mocker.patch("news_recommender.models.article_model.get_db_connection", mock_get_db_connection)
 
     return mock_cursor  # Return the mock cursor so we can set expectations per test
 
@@ -52,15 +52,17 @@ def mock_cursor(mocker):
 #
 ######################################################
 
-def test_create_song(mock_cursor):
+def test_create_article(mock_cursor):
     """Test creating a new song in the catalog."""
 
     # Call the function to create a new song
-    create_song(artist="Artist Name", title="Song Title", year=2022, genre="Pop", duration=180)
+    create_article(name="Name", author="Article Author", title="How pigeons fly",
+                   publishedAt="2024-12-05T19:58:30Z", url="https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
+                   content="Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ")
 
     expected_query = normalize_whitespace("""
-        INSERT INTO songs (artist, title, year, genre, duration)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO articles (name, author, title, url, content, publishedAt)
+        VALUES (?, ?, ?, ?, ?, ?)
     """)
 
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
@@ -72,19 +74,32 @@ def test_create_song(mock_cursor):
     actual_arguments = mock_cursor.execute.call_args[0][1]
 
     # Assert that the SQL query was executed with the correct arguments
-    expected_arguments = ("Artist Name", "Song Title", 2022, "Pop", 180)
+    create_article(name="Name", author="Article Author", title="How pigeons fly",
+                   
+                   url="https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
+                   content="Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ", 
+                   publishedAt="2024-12-05T19:58:30Z")
+    expected_arguments = ("Name", "Article Author", "How pigeons fly", 
+                          "https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
+                          "Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ",
+                          "2024-12-05T19:58:30Z")
     assert actual_arguments == expected_arguments, f"The SQL query arguments did not match. Expected {expected_arguments}, got {actual_arguments}."
 
 def test_create_song_duplicate(mock_cursor):
     """Test creating a song with a duplicate artist, title, and year (should raise an error)."""
 
     # Simulate that the database will raise an IntegrityError due to a duplicate entry
-    mock_cursor.execute.side_effect = sqlite3.IntegrityError("UNIQUE constraint failed: songs.artist, songs.title, songs.year")
+    mock_cursor.execute.side_effect = sqlite3.IntegrityError("UNIQUE constraint failed: article.name, article.title, article.url")
 
     # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
-    with pytest.raises(ValueError, match="Song with artist 'Artist Name', title 'Song Title', and year 2022 already exists."):
-        create_song(artist="Artist Name", title="Song Title", year=2022, genre="Pop", duration=180)
-
+    with pytest.raises(ValueError, match="Article with writer 'Name', title 'How pigeons fly', and url https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d already exists."):
+        create_article(name="Name", author="Article Author", title="How pigeons fly",
+                   
+                   url="https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
+                   content="Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ", 
+                   publishedAt="2024-12-05T19:58:30Z")
+                   
+'''
 def test_create_song_invalid_duration():
     """Test error when trying to create a song with an invalid duration (e.g., negative duration)"""
 
@@ -423,3 +438,4 @@ def test_update_play_count_deleted_song(mock_cursor):
 
     # Ensure that no SQL query for updating play count was executed
     mock_cursor.execute.assert_called_once_with("SELECT deleted FROM songs WHERE id = ?", (1,))
+'''
