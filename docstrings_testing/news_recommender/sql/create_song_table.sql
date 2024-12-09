@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS articles;
 CREATE TABLE articles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     author TEXT NOT NULL,
     title TEXT NOT NULL,

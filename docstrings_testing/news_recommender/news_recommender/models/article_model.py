@@ -14,6 +14,7 @@ configure_logger(logger)
 
 @dataclass
 class Article:
+    id: int
     name: str
     author: str
     title: str
@@ -22,13 +23,13 @@ class Article:
     publishedAt: str  
 
     def __post_init__(self):
-        if self.name.len <= 0:
-            raise ValueError(f"Name must contain 1 or more letters, got none")
-        if self.publishedAt.split('-')[0] <= 1900:
+        if self.id <= 0:
+            raise ValueError(f"ID must be greated than 0")
+        if int(self.publishedAt.split('-')[0]) <= 1900:
             raise ValueError(f"Year must be greater than 1900, got {self.publishedAt}")
 
 
-def create_article(name: str, author: str, title: str, url: str, content: str, publishedAt: str) -> None:
+def create_article(id: int, name: str, author: str, title: str, url: str, content: str, publishedAt: str) -> None:
     """
     Creates a new song in the songs table.
 
@@ -55,9 +56,9 @@ def create_article(name: str, author: str, title: str, url: str, content: str, p
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO articles (name, author, title, url, content, publishedAt)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """, (name, author, title, url, content, publishedAt))
+                INSERT INTO articles (id, name, author, title, url, content, publishedAt)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (id, name, author, title, url, content, publishedAt))
             conn.commit()
 
             logger.info("Article created successfully: %s - %s (%s)", author, title, url)
@@ -126,7 +127,7 @@ def delete_article(article_id: int) -> None:
         logger.error("Database error while deleting article: %s", str(e))
         raise e
 
-def get_article_by_url(article_id: int) -> Article:
+def get_article_by_id(article_id: int) -> Article:
     """
     Retrieves an article from the catalog by its url.
 
@@ -151,7 +152,7 @@ def get_article_by_url(article_id: int) -> Article:
             row = cursor.fetchone()
 
             if row:
-                if row[6]:  # deleted flag
+                if row[7]:  # deleted flag
                     logger.info("Article with ID %s has been deleted", article_id)
                     raise ValueError(f"Article with ID {article_id} has been deleted")
                 logger.info("Article with ID %s found", article_id)
@@ -163,8 +164,8 @@ def get_article_by_url(article_id: int) -> Article:
     except sqlite3.Error as e:
         logger.error("Database error while retrieving song by ID %s: %s", article_id, str(e))
         raise e
-'''
-def get_article_by_compound_key(name: str, author: str, url: str) -> Article:
+
+def get_article_by_compound_key(name: str, title: str, url: str) -> Article:
     """
     Retrieves a song from the catalog by its compound key (name, author, url).
 
@@ -182,28 +183,27 @@ def get_article_by_compound_key(name: str, author: str, url: str) -> Article:
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            logger.info("Attempting to retrieve song with artist '%s', title '%s', and year %d", artist, title, year)
+            logger.info("Attempting to retrieve song with artist '%s', title '%s', and year %s", name, title, url)
             cursor.execute("""
-                SELECT id, artist, title, year, genre, duration, deleted
-                FROM songs
-                WHERE artist = ? AND title = ? AND year = ?
-            """, (artist, title, year))
+                SELECT id, name, author, title, url, content, publishedAt, deleted
+                FROM articles
+                WHERE name = ? AND title = ? AND url = ?
+            """, (name, title, url,))
             row = cursor.fetchone()
-
             if row:
-                if row[6]:  # deleted flag
-                    logger.info("Song with artist '%s', title '%s', and year %d has been deleted", artist, title, year)
-                    raise ValueError(f"Song with artist '{artist}', title '{title}', and year {year} has been deleted")
-                logger.info("Song with artist '%s', title '%s', and year %d found", artist, title, year)
-                return Song(id=row[0], artist=row[1], title=row[2], year=row[3], genre=row[4], duration=row[5])
+                if row[7]:  # deleted flag
+                    logger.info("Article with name %s, title %s, and url %s has been deleted", name, title, url)
+                    raise ValueError(f"Article with name {name}, title {title}, and url {url} has been deleted")
+                logger.info("Article with name %s, title %s, and url %s has been found", name, title, url)
+                return Article(id=row[0], name=row[1], author=row[2], title=row[3], url=row[4], content=row[5], publishedAt=row[6])
             else:
-                logger.info("Song with artist '%s', title '%s', and year %d not found", artist, title, year)
-                raise ValueError(f"Song with artist '{artist}', title '{title}', and year {year} not found")
+                logger.info("Song with artist '%s', title '%s', and url %s not found", name, title, url)
+                raise ValueError(f"Song with artist '{name}', title '{title}', and year {url} not found")
 
     except sqlite3.Error as e:
-        logger.error("Database error while retrieving song by compound key (artist '%s', title '%s', year %d): %s", artist, title, year, str(e))
+        logger.error("Database error while retrieving song by compound key (artist '%s', title '%s', year %s): %s", name, title, url, str(e))
         raise e
-
+'''
 def get_all_articles(sort_by_play_count: bool = False) -> list[dict]:
     """
     Retrieves all articles that are not marked as deleted from the catalog.

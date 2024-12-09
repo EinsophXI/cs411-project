@@ -10,7 +10,7 @@ from news_recommender.models.article_model import (
     #clear_catalog,
     delete_article,
     #get_song_by_id,
-    #get_song_by_compound_key,
+    get_article_by_compound_key,
     #get_all_songs,
     #get_random_song,
     #update_play_count
@@ -56,13 +56,13 @@ def test_create_article(mock_cursor):
     """Test creating a new song in the catalog."""
 
     # Call the function to create a new song
-    create_article(name="Name", author="Article Author", title="How pigeons fly",
+    create_article(id=1, name="Name", author="Article Author", title="How pigeons fly",
                    publishedAt="2024-12-05T19:58:30Z", url="https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
                    content="Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ")
 
     expected_query = normalize_whitespace("""
-        INSERT INTO articles (name, author, title, url, content, publishedAt)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO articles (id, name, author, title, url, content, publishedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
     """)
 
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
@@ -74,12 +74,12 @@ def test_create_article(mock_cursor):
     actual_arguments = mock_cursor.execute.call_args[0][1]
 
     # Assert that the SQL query was executed with the correct arguments
-    create_article(name="Name", author="Article Author", title="How pigeons fly",
+    create_article(id = 1, name="Name", author="Article Author", title="How pigeons fly",
                    
                    url="https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
                    content="Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ", 
                    publishedAt="2024-12-05T19:58:30Z")
-    expected_arguments = ("Name", "Article Author", "How pigeons fly", 
+    expected_arguments = (1, "Name", "Article Author", "How pigeons fly", 
                           "https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
                           "Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ",
                           "2024-12-05T19:58:30Z")
@@ -93,7 +93,7 @@ def test_create_song_duplicate(mock_cursor):
 
     # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
     with pytest.raises(ValueError, match=r"^Article with writer 'Name', title 'How pigeons fly', and url https:\/\/newsapi\.org\/v2\/everything\?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d already exists\.$"):
-        create_article(name="Name", author="Article Author", title="How pigeons fly",
+        create_article(id=1, name="Name", author="Article Author", title="How pigeons fly",
                    
                    url="https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
                    content="Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ", 
@@ -230,22 +230,22 @@ def test_get_song_by_id_bad_id(mock_cursor):
     # Expect a ValueError when the song is not found
     with pytest.raises(ValueError, match="Song with ID 999 not found"):
         get_song_by_id(999)
-
-def test_get_song_by_compound_key(mock_cursor):
+'''
+def test_get_article_by_compound_key(mock_cursor):
     # Simulate that the song exists (artist = "Artist Name", title = "Song Title", year = 2022)
-    mock_cursor.fetchone.return_value = (1, "Artist Name", "Song Title", 2022, "Pop", 180, False)
+    mock_cursor.fetchone.return_value = (1, "Name", "Author", "Title", "URL", "Content", "2024-16-39133EDD", False)
 
     # Call the function and check the result
-    result = get_song_by_compound_key("Artist Name", "Song Title", 2022)
+    result = get_article_by_compound_key("Name", "Title", "URL")
 
     # Expected result based on the simulated fetchone return value
-    expected_result = Song(1, "Artist Name", "Song Title", 2022, "Pop", 180)
+    expected_result = Article(1, "Name", "Author", "Title", "URL", "Content", "2024-16-39133EDD")
 
     # Ensure the result matches the expected output
     assert result == expected_result, f"Expected {expected_result}, got {result}"
 
     # Ensure the SQL query was executed correctly
-    expected_query = normalize_whitespace("SELECT id, artist, title, year, genre, duration, deleted FROM songs WHERE artist = ? AND title = ? AND year = ?")
+    expected_query = normalize_whitespace("SELECT id, name, author, title, url, content, publishedAt, deleted FROM articles WHERE name = ? AND title = ? AND url = ?")
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
 
     # Assert that the SQL query was correct
@@ -255,9 +255,9 @@ def test_get_song_by_compound_key(mock_cursor):
     actual_arguments = mock_cursor.execute.call_args[0][1]
 
     # Assert that the SQL query was executed with the correct arguments
-    expected_arguments = ("Artist Name", "Song Title", 2022)
+    expected_arguments = ("Name", "Title", "URL")
     assert actual_arguments == expected_arguments, f"The SQL query arguments did not match. Expected {expected_arguments}, got {actual_arguments}."
-
+'''
 def test_get_all_songs(mock_cursor):
     """Test retrieving all songs that are not marked as deleted."""
 
