@@ -68,7 +68,7 @@ def create_article(name: str, author: str, title: str, url: str, content: str, p
     except sqlite3.Error as e:
         logger.error("Database error while creating song: %s", str(e))
         raise sqlite3.Error(f"Database error: {str(e)}")
-'''
+
 def clear_catalog() -> None:
     """
     Recreates the article table, effectively deleting all songs.
@@ -77,7 +77,7 @@ def clear_catalog() -> None:
         sqlite3.Error: If any database error occurs.
     """
     try:
-        with open(os.getenv("SQL_CREATE_TABLE_PATH", "/app/sql/create_song_table.sql"), "r") as fh:
+        with open(os.getenv("SQL_CREATE_TABLE_PATH", "/app/sql/create_article_table.sql"), "r") as fh:
             create_table_script = fh.read()
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -90,7 +90,7 @@ def clear_catalog() -> None:
         logger.error("Database error while clearing catalog: %s", str(e))
         raise e
 
-def delete_article(song_id: int) -> None:
+def delete_article(article_id: int) -> None:
     """
     Soft deletes an article from the catalog by marking it as deleted.
 
@@ -106,27 +106,27 @@ def delete_article(song_id: int) -> None:
             cursor = conn.cursor()
 
             # Check if the song exists and if it's already deleted
-            cursor.execute("SELECT deleted FROM songs WHERE id = ?", (song_id,))
+            cursor.execute("SELECT deleted FROM articles WHERE id = ?", (article_id,))
             try:
                 deleted = cursor.fetchone()[0]
                 if deleted:
-                    logger.info("Song with ID %s has already been deleted", song_id)
-                    raise ValueError(f"Song with ID {song_id} has already been deleted")
+                    logger.info("Article with ID %s has already been deleted", article_id)
+                    raise ValueError(f"Article with ID {article_id} has already been deleted")
             except TypeError:
-                logger.info("Song with ID %s not found", song_id)
-                raise ValueError(f"Song with ID {song_id} not found")
+                logger.info("Article with ID %s not found", article_id)
+                raise ValueError(f"Article with ID {article_id} not found")
 
             # Perform the soft delete by setting 'deleted' to TRUE
-            cursor.execute("UPDATE songs SET deleted = TRUE WHERE id = ?", (song_id,))
+            cursor.execute("UPDATE articles SET deleted = TRUE WHERE id = ?", (article_id,))
             conn.commit()
 
-            logger.info("Song with ID %s marked as deleted.", song_id)
+            logger.info("Article with ID %s marked as deleted.", article_id)
 
     except sqlite3.Error as e:
-        logger.error("Database error while deleting song: %s", str(e))
+        logger.error("Database error while deleting article: %s", str(e))
         raise e
 
-def get_article_by_url(song_id: int) -> Song:
+def get_article_by_url(article_id: int) -> Article:
     """
     Retrieves an article from the catalog by its url.
 
@@ -142,28 +142,28 @@ def get_article_by_url(song_id: int) -> Song:
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            logger.info("Attempting to retrieve song with ID %s", song_id)
+            logger.info("Attempting to retrieve article with ID %s", article_id)
             cursor.execute("""
-                SELECT id, artist, title, year, genre, duration, deleted
-                FROM songs
+                SELECT id, name, author, title, url, content, publishedAt, deleted
+                FROM articles
                 WHERE id = ?
-            """, (song_id,))
+            """, (article_id,))
             row = cursor.fetchone()
 
             if row:
                 if row[6]:  # deleted flag
-                    logger.info("Song with ID %s has been deleted", song_id)
-                    raise ValueError(f"Song with ID {song_id} has been deleted")
-                logger.info("Song with ID %s found", song_id)
-                return Song(id=row[0], artist=row[1], title=row[2], year=row[3], genre=row[4], duration=row[5])
+                    logger.info("Article with ID %s has been deleted", article_id)
+                    raise ValueError(f"Article with ID {article_id} has been deleted")
+                logger.info("Article with ID %s found", article_id)
+                return Article(id=row[0], name=row[1], author=row[2], title=row[3], url=row[4], content=row[5], publishedAt=row[6])
             else:
-                logger.info("Song with ID %s not found", song_id)
-                raise ValueError(f"Song with ID {song_id} not found")
+                logger.info("Article with ID %s not found", article_id)
+                raise ValueError(f"Article with ID {article_id} not found")
 
     except sqlite3.Error as e:
-        logger.error("Database error while retrieving song by ID %s: %s", song_id, str(e))
+        logger.error("Database error while retrieving song by ID %s: %s", article_id, str(e))
         raise e
-
+'''
 def get_article_by_compound_key(name: str, author: str, url: str) -> Article:
     """
     Retrieves a song from the catalog by its compound key (name, author, url).

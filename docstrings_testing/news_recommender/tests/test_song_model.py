@@ -8,7 +8,7 @@ from news_recommender.models.article_model import (
     Article,
     create_article,
     #clear_catalog,
-    #delete_song,
+    delete_article,
     #get_song_by_id,
     #get_song_by_compound_key,
     #get_all_songs,
@@ -92,7 +92,7 @@ def test_create_song_duplicate(mock_cursor):
     mock_cursor.execute.side_effect = sqlite3.IntegrityError("UNIQUE constraint failed: article.name, article.title, article.url")
 
     # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
-    with pytest.raises(ValueError, match="Article with writer 'Name', title 'How pigeons fly', and url https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d already exists."):
+    with pytest.raises(ValueError, match=r"^Article with writer 'Name', title 'How pigeons fly', and url https:\/\/newsapi\.org\/v2\/everything\?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d already exists\.$"):
         create_article(name="Name", author="Article Author", title="How pigeons fly",
                    
                    url="https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
@@ -121,7 +121,7 @@ def test_create_song_invalid_year():
     # Attempt to create a song with a non-integer year
     with pytest.raises(ValueError, match="Invalid year provided: invalid \(must be an integer greater than or equal to 1900\)."):
         create_song(artist="Artist Name", title="Song Title", year="invalid", genre="Pop", duration=180)
-
+'''
 def test_delete_song(mock_cursor):
     """Test soft deleting a song from the catalog by song ID."""
 
@@ -129,11 +129,11 @@ def test_delete_song(mock_cursor):
     mock_cursor.fetchone.return_value = ([False])
 
     # Call the delete_song function
-    delete_song(1)
+    delete_article(1)
 
     # Normalize the SQL for both queries (SELECT and UPDATE)
-    expected_select_sql = normalize_whitespace("SELECT deleted FROM songs WHERE id = ?")
-    expected_update_sql = normalize_whitespace("UPDATE songs SET deleted = TRUE WHERE id = ?")
+    expected_select_sql = normalize_whitespace("SELECT deleted FROM articles WHERE id = ?")
+    expected_update_sql = normalize_whitespace("UPDATE articles SET deleted = TRUE WHERE id = ?")
 
     # Access both calls to `execute()` using `call_args_list`
     actual_select_sql = normalize_whitespace(mock_cursor.execute.call_args_list[0][0][0])
@@ -152,7 +152,7 @@ def test_delete_song(mock_cursor):
 
     assert actual_select_args == expected_select_args, f"The SELECT query arguments did not match. Expected {expected_select_args}, got {actual_select_args}."
     assert actual_update_args == expected_update_args, f"The UPDATE query arguments did not match. Expected {expected_update_args}, got {actual_update_args}."
-
+'''
 def test_delete_song_bad_id(mock_cursor):
     """Test error when trying to delete a non-existent song."""
 
