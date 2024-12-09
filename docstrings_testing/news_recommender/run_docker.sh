@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables
-IMAGE_NAME="playlist"
+IMAGE_NAME="news_recommender"
 CONTAINER_TAG="0.0.1"
 HOST_PORT=5000
 CONTAINER_PORT=5000
