@@ -72,7 +72,7 @@ def create_article(id: int, name: str, author: str, title: str, url: str, conten
 
 def clear_catalog() -> None:
     """
-    Recreates the article table, effectively deleting all songs.
+    Recreates the article table, effectively deleting all articles.
 
     Raises:
         sqlite3.Error: If any database error occurs.

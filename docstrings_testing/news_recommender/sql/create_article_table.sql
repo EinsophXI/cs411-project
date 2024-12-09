@@ -7,6 +7,7 @@ CREATE TABLE articles (
     url TEXT NOT NULL,
     content TEXT NOT NULL,
     publishedAt TEXT NOT NULL,
+    read_count INTEGER DEFAULT 0,
     deleted BOOLEAN DEFAULT FALSE,
     UNIQUE(author, title, url)
 );
