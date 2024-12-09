@@ -203,6 +203,44 @@ def get_article_by_compound_key(name: str, title: str, url: str) -> Article:
     except sqlite3.Error as e:
         logger.error("Database error while retrieving song by compound key (artist '%s', title '%s', year %s): %s", name, title, url, str(e))
         raise e
+    
+def update_read_count(article_id: int) -> None:
+    """
+    Increments the read count of a article by article ID.
+
+    Args:
+        article_id (int): The ID of the article whose read count should be incremented.
+
+    Raises:
+        ValueError: If the article does not exist or is marked as deleted.
+        sqlite3.Error: If there is a database error.
+    """
+    try:
+        with get_db_connection() as conn:
+            cursor = conn.cursor()
+            logger.info("Attempting to update read count for article with ID %d", article_id)
+
+            # Check if the song exists and if it's deleted
+            cursor.execute("SELECT deleted FROM articles WHERE id = ?", (article_id,))
+            try:
+                deleted = cursor.fetchone()[0]
+                if deleted:
+                    logger.info("Article with ID %d has been deleted", article_id)
+                    raise ValueError(f"Article with ID {article_id} has been deleted")
+            except TypeError:
+                logger.info("Article with ID %d not found", article_id)
+                raise ValueError(f"Article with ID {article_id} not found")
+
+            # Increment the play count
+            cursor.execute("UPDATE articles SET read_count = read_count + 1 WHERE id = ?", (article_id,))
+            conn.commit()
+
+            logger.info("Read count incremented for article with ID: %d", article_id)
+
+    except sqlite3.Error as e:
+        logger.error("Database error while updating read count for article with ID %d: %s", article_id, str(e))
+        raise e
+
 '''
 def get_all_articles(sort_by_play_count: bool = False) -> list[dict]:
     """

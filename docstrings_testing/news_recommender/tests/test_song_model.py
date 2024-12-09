@@ -13,7 +13,7 @@ from news_recommender.models.article_model import (
     get_article_by_compound_key,
     #get_all_songs,
     #get_random_song,
-    #update_play_count
+    update_read_count
 )
 
 ######################################################
@@ -100,26 +100,16 @@ def test_create_song_duplicate(mock_cursor):
                    publishedAt="2024-12-05T19:58:30Z")
                    
 '''
-def test_create_song_invalid_duration():
-    """Test error when trying to create a song with an invalid duration (e.g., negative duration)"""
-
-    # Attempt to create a song with a negative duration
-    with pytest.raises(ValueError, match="Invalid song duration: -180 \(must be a positive integer\)."):
-        create_song(artist="Artist Name", title="Song Title", year=2022, genre="Pop", duration=-180)
-
-    # Attempt to create a song with a non-integer duration
-    with pytest.raises(ValueError, match="Invalid song duration: invalid \(must be a positive integer\)."):
-        create_song(artist="Artist Name", title="Song Title", year=2022, genre="Pop", duration="invalid")
 
 def test_create_song_invalid_year():
     """Test error when trying to create a song with an invalid year (e.g., less than 1900 or non-integer)."""
 
     # Attempt to create a song with a year less than 1900
-    with pytest.raises(ValueError, match="Invalid year provided: 1899 \(must be an integer greater than or equal to 1900\)."):
+    with pytest.raises(ValueError, match="Invalid year provided: 1899 (must be an integer greater than or equal to 1900)."):
         create_song(artist="Artist Name", title="Song Title", year=1899, genre="Pop", duration=180)
 
     # Attempt to create a song with a non-integer year
-    with pytest.raises(ValueError, match="Invalid year provided: invalid \(must be an integer greater than or equal to 1900\)."):
+    with pytest.raises(ValueError, match="Invalid year provided: invalid (must be an integer greater than or equal to 1900)."):
         create_song(artist="Artist Name", title="Song Title", year="invalid", genre="Pop", duration=180)
 '''
 def test_delete_song(mock_cursor):
@@ -396,20 +386,21 @@ def test_get_random_song_empty_catalog(mock_cursor, mocker):
 
     # Assert that the SQL query was correct
     assert actual_query == expected_query, "The SQL query did not match the expected structure."
+'''
 
-def test_update_play_count(mock_cursor):
+def test_update_read_count(mock_cursor):
     """Test updating the play count of a song."""
 
     # Simulate that the song exists and is not deleted (id = 1)
     mock_cursor.fetchone.return_value = [False]
 
-    # Call the update_play_count function with a sample song ID
-    song_id = 1
-    update_play_count(song_id)
+    # Call the update_read_count function with a sample song ID
+    article_id = 1
+    update_read_count(article_id)
 
     # Normalize the expected SQL query
     expected_query = normalize_whitespace("""
-        UPDATE songs SET play_count = play_count + 1 WHERE id = ?
+        UPDATE articles SET read_count = read_count + 1 WHERE id = ?
     """)
 
     # Ensure the SQL query was executed correctly
@@ -422,20 +413,19 @@ def test_update_play_count(mock_cursor):
     actual_arguments = mock_cursor.execute.call_args_list[1][0][1]
 
     # Assert that the SQL query was executed with the correct arguments (song ID)
-    expected_arguments = (song_id,)
+    expected_arguments = (article_id,)
     assert actual_arguments == expected_arguments, f"The SQL query arguments did not match. Expected {expected_arguments}, got {actual_arguments}."
 
 ### Test for Updating a Deleted Song:
-def test_update_play_count_deleted_song(mock_cursor):
+def test_update_read_count_deleted_article(mock_cursor):
     """Test error when trying to update play count for a deleted song."""
 
     # Simulate that the song exists but is marked as deleted (id = 1)
     mock_cursor.fetchone.return_value = [True]
 
     # Expect a ValueError when attempting to update a deleted song
-    with pytest.raises(ValueError, match="Song with ID 1 has been deleted"):
-        update_play_count(1)
+    with pytest.raises(ValueError, match="Article with ID 1 has been deleted"):
+        update_read_count(1)
 
     # Ensure that no SQL query for updating play count was executed
-    mock_cursor.execute.assert_called_once_with("SELECT deleted FROM songs WHERE id = ?", (1,))
-'''
+    mock_cursor.execute.assert_called_once_with("SELECT deleted FROM articles WHERE id = ?", (1,))

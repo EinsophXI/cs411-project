@@ -10,18 +10,18 @@ def journal_model():
     return JournalModel()
 
 @pytest.fixture
-def mock_update_play_count(mocker):
-    """Mock the update_play_count function for testing purposes."""
-    return mocker.patch("music_collection.models.journal_model.update_play_count")
+def mock_update_read_count(mocker):
+    """Mock the update_read_count function for testing purposes."""
+    return mocker.patch("news_recommender.models.journal_model.update_read_count")
 
 """Fixtures providing sample articles for the tests."""
 @pytest.fixture
 def sample_article1():
-    return Article(1, 'Name 1', 'Author 1', 'Title 1', '2001-01-01T01:01:01Z', 'URL 1', 'Content 1')
+    return Article(1, 'Name 1', 'Author 1', 'Title 1', 'URL 1', 'Content 1', '2001-01-01T01:01:01Z')
 
 @pytest.fixture
 def sample_article2():
-    return Article(2, 'Name 2', 'Author 2', 'Title 2', '2002-02-02T02:02:02Z', 'URL 2', 'Content 2')
+    return Article(2, 'Name 2', 'Author 2', 'Title 2', 'URL 2', 'Content 2', '2002-02-02T02:02:02Z')
 
 @pytest.fixture
 def sample_journal(sample_article1, sample_article2):
@@ -33,10 +33,10 @@ def sample_journal(sample_article1, sample_article2):
 ##################################################
 
 def test_add_article_to_journal(journal_model, sample_article1):
-    """Test adding a article to the journal."""
+    """Test adding an article to the journal."""
     journal_model.add_article_to_journal(sample_article1)
     assert len(journal_model.journal) == 1
-    assert journal_model.journal[0].title == 'Article 1'
+    assert journal_model.journal[0].title == 'Title 1'
 
 def test_add_duplicate_article_to_journal(journal_model, sample_article1):
     """Test error when adding a duplicate article to the journal by ID."""
@@ -49,7 +49,7 @@ def test_add_duplicate_article_to_journal(journal_model, sample_article1):
 ##################################################
 
 def test_remove_article_from_journal_by_article_id(journal_model, sample_journal):
-    """Test removing a article from the journal by article_id."""
+    """Test removing an article from the journal by article_id."""
     journal_model.journal.extend(sample_journal)
     assert len(journal_model.journal) == 2
 
@@ -58,7 +58,7 @@ def test_remove_article_from_journal_by_article_id(journal_model, sample_journal
     assert journal_model.journal[0].id == 2, "Expected article with id 2 to remain"
 
 def test_remove_article_by_article_number(journal_model, sample_journal):
-    """Test removing a article from the journal by article number."""
+    """Test removing an article from the journal by article number."""
     journal_model.journal.extend(sample_journal)
     assert len(journal_model.journal) == 2
 
@@ -85,7 +85,7 @@ def test_clear_journal_empty_journal(journal_model, caplog):
 ##################################################
 
 def test_move_article_to_article_number(journal_model, sample_journal):
-    """Test moving a article to a specific article number in the journal."""
+    """Test moving an article to a specific article number in the journal."""
     journal_model.journal.extend(sample_journal)
 
     journal_model.move_article_to_article_number(2, 1)  # Move Article 2 to the first position
@@ -101,21 +101,21 @@ def test_swap_articles_in_journal(journal_model, sample_journal):
     assert journal_model.journal[1].id == 1, "Expected Article 1 to be in the second position"
 
 def test_swap_article_with_itself(journal_model, sample_article1):
-    """Test swapping the position of a article with itself raises an error."""
+    """Test swapping the position of an article with itself raises an error."""
     journal_model.add_article_to_journal(sample_article1)
 
-    with pytest.raises(ValueError, match="Cannot swap a article with itself"):
+    with pytest.raises(ValueError, match="Cannot swap an article with itself"):
         journal_model.swap_articles_in_journal(1, 1)  # Swap positions of Article 1 with itself
 
 def test_move_article_to_end(journal_model, sample_journal):
-    """Test moving a article to the end of the journal."""
+    """Test moving an article to the end of the journal."""
     journal_model.journal.extend(sample_journal)
 
     journal_model.move_article_to_end(1)  # Move Article 1 to the end
     assert journal_model.journal[1].id == 1, "Expected Article 1 to be at the end"
 
 def test_move_article_to_beginning(journal_model, sample_journal):
-    """Test moving a article to the beginning of the journal."""
+    """Test moving an article to the beginning of the journal."""
     journal_model.journal.extend(sample_journal)
 
     journal_model.move_article_to_beginning(2)  # Move Article 2 to the beginning
@@ -126,16 +126,17 @@ def test_move_article_to_beginning(journal_model, sample_journal):
 ##################################################
 
 def test_get_article_by_article_number(journal_model, sample_journal):
-    """Test successfully retrieving a article from the journal by article number."""
+    """Test successfully retrieving an article from the journal by article number."""
     journal_model.journal.extend(sample_journal)
 
     retrieved_article = journal_model.get_article_by_article_number(1)
     assert retrieved_article.id == 1
-    assert retrieved_article.title == 'Article 1'
-    assert retrieved_article.artist == 'Artist 1'
-    assert retrieved_article.year == 2022
-    assert retrieved_article.duration == 180
-    assert retrieved_article.genre == 'Pop'
+    assert retrieved_article.name == 'Name 1'
+    assert retrieved_article.author == 'Author 1'
+    assert retrieved_article.title == 'Title 1'
+    assert retrieved_article.url == 'URL 1'
+    assert retrieved_article.content == 'Content 1'
+    assert retrieved_article.publishedAt == '2001-01-01T01:01:01Z'
 
 def test_get_all_articles(journal_model, sample_journal):
     """Test successfully retrieving all articles from the journal."""
@@ -147,17 +148,18 @@ def test_get_all_articles(journal_model, sample_journal):
     assert all_articles[1].id == 2
 
 def test_get_article_by_article_id(journal_model, sample_article1):
-    """Test successfully retrieving a article from the journal by article ID."""
+    """Test successfully retrieving an article from the journal by article ID."""
     journal_model.add_article_to_journal(sample_article1)
 
     retrieved_article = journal_model.get_article_by_article_id(1)
 
     assert retrieved_article.id == 1
-    assert retrieved_article.title == 'Article 1'
-    assert retrieved_article.artist == 'Artist 1'
-    assert retrieved_article.year == 2022
-    assert retrieved_article.duration == 180
-    assert retrieved_article.genre == 'Pop'
+    assert retrieved_article.name == 'Name 1'
+    assert retrieved_article.author == 'Author 1'
+    assert retrieved_article.title == 'Title 1'
+    assert retrieved_article.url == 'URL 1'
+    assert retrieved_article.content == 'Content 1'
+    assert retrieved_article.publishedAt == '2001-01-01T01:01:01Z'
 
 def test_get_current_article(journal_model, sample_journal):
     """Test successfully retrieving the current article from the journal."""
@@ -165,21 +167,17 @@ def test_get_current_article(journal_model, sample_journal):
 
     current_article = journal_model.get_current_article()
     assert current_article.id == 1
-    assert current_article.title == 'Article 1'
-    assert current_article.artist == 'Artist 1'
-    assert current_article.year == 2022
-    assert current_article.duration == 180
-    assert current_article.genre == 'Pop'
+    assert current_article.name == 'Name 1'
+    assert current_article.author == 'Author 1'
+    assert current_article.title == 'Title 1'
+    assert current_article.url == 'URL 1'
+    assert current_article.content == 'Content 1'
+    assert current_article.publishedAt == '2001-01-01T01:01:01Z'
 
 def test_get_journal_length(journal_model, sample_journal):
     """Test getting the length of the journal."""
     journal_model.journal.extend(sample_journal)
     assert journal_model.get_journal_length() == 2, "Expected journal length to be 2"
-
-def test_get_journal_duration(journal_model, sample_journal):
-    """Test getting the total duration of the journal."""
-    journal_model.journal.extend(sample_journal)
-    assert journal_model.get_journal_duration() == 335, "Expected journal duration to be 360 seconds"
 
 ##################################################
 # Utility Function Test Cases
@@ -244,29 +242,29 @@ def test_validate_article_number_invalid(journal_model, sample_article1):
         journal_model.validate_article_number("invalid")
 
 ##################################################
-# Playback Test Cases
+# Readback Test Cases
 ##################################################
 
-def test_play_current_article(journal_model, sample_journal, mock_update_play_count):
-    """Test playing the current article."""
+def test_read_current_article(journal_model, sample_journal, mock_update_read_count):
+    """Test reading the current article."""
     journal_model.journal.extend(sample_journal)
 
-    journal_model.play_current_article()
+    journal_model.read_current_article()
 
     # Assert that CURRENT_ARTICLE_NUMBER has been updated to 2
     assert journal_model.current_article_number == 2, f"Expected article number to be 2, but got {journal_model.current_article_number}"
 
-    # Assert that update_play_count was called with the id of the first article
-    mock_update_play_count.assert_called_once_with(1)
+    # Assert that update_read_count was called with the id of the first article
+    mock_update_read_count.assert_called_once_with(1)
 
     # Get the second article from the iterator (which will increment CURRENT_ARTICLE_NUMBER back to 1)
-    journal_model.play_current_article()
+    journal_model.read_current_article()
 
     # Assert that CURRENT_ARTICLE_NUMBER has been updated back to 1
     assert journal_model.current_article_number == 1, f"Expected article number to be 1, but got {journal_model.current_article_number}"
 
-    # Assert that update_play_count was called with the id of the second article
-    mock_update_play_count.assert_called_with(2)
+    # Assert that update_read_count was called with the id of the second article
+    mock_update_read_count.assert_called_with(2)
 
 def test_rewind_journal(journal_model, sample_journal):
     """Test rewinding the iterator to the beginning of the journal."""
@@ -283,29 +281,29 @@ def test_go_to_article_number(journal_model, sample_journal):
     journal_model.go_to_article_number(2)
     assert journal_model.current_article_number == 2, "Expected to be at article 2 after moving article"
 
-def test_play_entire_journal(journal_model, sample_journal, mock_update_play_count):
-    """Test playing the entire journal."""
+def test_read_entire_journal(journal_model, sample_journal, mock_update_read_count):
+    """Test reading the entire journal."""
     journal_model.journal.extend(sample_journal)
 
-    journal_model.play_entire_journal()
+    journal_model.read_entire_journal()
 
-    # Check that all play counts were updated
-    mock_update_play_count.assert_any_call(1)
-    mock_update_play_count.assert_any_call(2)
-    assert mock_update_play_count.call_count == len(journal_model.journal)
+    # Check that all read counts were updated
+    mock_update_read_count.assert_any_call(1)
+    mock_update_read_count.assert_any_call(2)
+    assert mock_update_read_count.call_count == len(journal_model.journal)
 
     # Check that the current article number was updated back to the first article
     assert journal_model.current_article_number == 1, "Expected to loop back to the beginning of the journal"
 
-def test_play_rest_of_journal(journal_model, sample_journal, mock_update_play_count):
-    """Test playing from the current position to the end of the journal."""
+def test_read_rest_of_journal(journal_model, sample_journal, mock_update_read_count):
+    """Test reading from the current position to the end of the journal."""
     journal_model.journal.extend(sample_journal)
     journal_model.current_article_number = 2
 
-    journal_model.play_rest_of_journal()
+    journal_model.read_rest_of_journal()
 
-    # Check that play counts were updated for the remaining articles
-    mock_update_play_count.assert_any_call(2)
-    assert mock_update_play_count.call_count == 1
+    # Check that read counts were updated for the remaining articles
+    mock_update_read_count.assert_any_call(2)
+    assert mock_update_read_count.call_count == 1
 
     assert journal_model.current_article_number == 1, "Expected to loop back to the beginning of the journal"

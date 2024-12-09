@@ -1,6 +1,6 @@
 import logging
 from typing import List
-from news_recommender.models.article_model import Article, update_play_count
+from news_recommender.models.article_model import Article, update_read_count
 from news_recommender.utils.logger import configure_logger
 
 logger = logging.getLogger(__name__)
@@ -12,7 +12,7 @@ class JournalModel:
     A class to manage a journal of articles.
 
     Attributes:
-        # current_track_number (int): The current track number being played.
+        # current_article_number (int): The current article number being readed.
         # journal (List[Article]): The list of articles in the journal.
         
         current_article_number (int): The current article being viewed.
@@ -70,20 +70,20 @@ class JournalModel:
         self.journal = [article_in_journal for article_in_journal in self.journal if article_in_journal.id != article_id]
         logger.info("Article with id %d has been removed", article_id)
 
-    def remove_article_by_track_number(self, track_number: int) -> None:
+    def remove_article_by_article_number(self, article_number: int) -> None:
         """
-        Removes an article from the journal by its track number (1-indexed).
+        Removes an article from the journal by its article number (1-indexed).
 
         Args:
-            track_number (int): The track number of the article to remove.
+            article_number (int): The article number of the article to remove.
 
         Raises:
-            ValueError: If the journal is empty or the track number is invalid.
+            ValueError: If the journal is empty or the article number is invalid.
         """
-        logger.info("Removing article at track number %d from journal", track_number)
+        logger.info("Removing article at article number %d from journal", article_number)
         self.check_if_empty()
-        track_number = self.validate_track_number(track_number)
-        journal_index = track_number - 1
+        article_number = self.validate_article_number(article_number)
+        journal_index = article_number - 1
         logger.info("Removing article: %s", self.journal[journal_index].title)
         del self.journal[journal_index]
 
@@ -123,28 +123,28 @@ class JournalModel:
         logger.info("Getting article with id %d from journal", article_id)
         return next((article for article in self.journal if article.id == article_id), None)
 
-    def get_article_by_track_number(self, track_number: int) -> Article:
+    def get_article_by_article_number(self, article_number: int) -> Article:
         """
-        Retrieves an article from the journal by its track number (1-indexed).
+        Retrieves an article from the journal by its article number (1-indexed).
 
         Args:
-            track_number (int): The track number of the article to retrieve.
+            article_number (int): The article number of the article to retrieve.
 
         Raises:
-            ValueError: If the journal is empty or the track number is invalid.
+            ValueError: If the journal is empty or the article number is invalid.
         """
         self.check_if_empty()
-        track_number = self.validate_track_number(track_number)
-        journal_index = track_number - 1
-        logger.info("Getting article at track number %d from journal", track_number)
+        article_number = self.validate_article_number(article_number)
+        journal_index = article_number - 1
+        logger.info("Getting article at article number %d from journal", article_number)
         return self.journal[journal_index]
 
     def get_current_article(self) -> Article:
         """
-        Returns the current article being played.
+        Returns the current article being readed.
         """
         self.check_if_empty()
-        return self.get_article_by_track_number(self.current_track_number)
+        return self.get_article_by_article_number(self.current_article_number)
 
     def get_journal_length(self) -> int:
         """
@@ -162,17 +162,17 @@ class JournalModel:
     # Journal Movement Functions
     ##################################################
 
-    def go_to_track_number(self, track_number: int) -> None:
+    def go_to_article_number(self, article_number: int) -> None:
         """
-        Sets the current track number to the specified track number.
+        Sets the current article number to the specified article number.
 
         Args:
-            track_number (int): The track number to set as the current track.
+            article_number (int): The article number to set as the current article.
         """
         self.check_if_empty()
-        track_number = self.validate_track_number(track_number)
-        logger.info("Setting current track number to %d", track_number)
-        self.current_track_number = track_number
+        article_number = self.validate_article_number(article_number)
+        logger.info("Setting current article number to %d", article_number)
+        self.current_article_number = article_number
 
     def move_article_to_beginning(self, article_id: int) -> None:
         """
@@ -204,23 +204,23 @@ class JournalModel:
         self.journal.append(article)
         logger.info("Article with ID %d has been moved to the end", article_id)
 
-    def move_article_to_track_number(self, article_id: int, track_number: int) -> None:
+    def move_article_to_article_number(self, article_id: int, article_number: int) -> None:
         """
-        Moves an article to a specific track number in the journal.
+        Moves an article to a specific article number in the journal.
 
         Args:
             article_id (int): The ID of the article to move.
-            track_number (int): The track number to move the article to (1-indexed).
+            article_number (int): The article number to move the article to (1-indexed).
         """
-        logger.info("Moving article with ID %d to track number %d", article_id, track_number)
+        logger.info("Moving article with ID %d to article number %d", article_id, article_number)
         self.check_if_empty()
         article_id = self.validate_article_id(article_id)
-        track_number = self.validate_track_number(track_number)
-        journal_index = track_number - 1
+        article_number = self.validate_article_number(article_number)
+        journal_index = article_number - 1
         article = self.get_article_by_article_id(article_id)
         self.journal.remove(article)
         self.journal.insert(journal_index, article)
-        logger.info("Article with ID %d has been moved to track number %d", article_id, track_number)
+        logger.info("Article with ID %d has been moved to article number %d", article_id, article_number)
 
     def swap_articles_in_journal(self, article1_id: int, article2_id: int) -> None:
         """
@@ -250,57 +250,57 @@ class JournalModel:
         logger.info("Swapped articles with IDs %d and %d", article1_id, article2_id)
 
     ##################################################
-    # Journal Playback Functions
+    # Journal Readback Functions
     ##################################################
 
-    def play_current_article(self) -> None:
+    def read_current_article(self) -> None:
         """
-        Plays the current article.
+        Reads the current article.
 
         Side-effects:
-            Updates the current track number.
-            Updates the play count for the article.
+            Updates the current article number.
+            Updates the read count for the article.
         """
         self.check_if_empty()
-        current_article = self.get_article_by_track_number(self.current_track_number)
-        logger.info("Playing article: %s (ID: %d) at track number: %d", current_article.title, current_article.id, self.current_track_number)
-        update_play_count(current_article.id)
-        logger.info("Updated play count for article: %s (ID: %d)", current_article.title, current_article.id)
-        previous_track_number = self.current_track_number
-        self.current_track_number = (self.current_track_number % self.get_journal_length()) + 1
-        logger.info("Track number updated from %d to %d", previous_track_number, self.current_track_number)
+        current_article = self.get_article_by_article_number(self.current_article_number)
+        logger.info("Reading article: %s (ID: %d) at article number: %d", current_article.title, current_article.id, self.current_article_number)
+        update_read_count(current_article.id)
+        logger.info("Updated read count for article: %s (ID: %d)", current_article.title, current_article.id)
+        previous_article_number = self.current_article_number
+        self.current_article_number = (self.current_article_number % self.get_journal_length()) + 1
+        logger.info("Article number updated from %d to %d", previous_article_number, self.current_article_number)
 
-    def play_entire_journal(self) -> None:
+    def read_entire_journal(self) -> None:
         """
-        Plays the entire journal.
+        Reads the entire journal.
 
         Side-effects:
-            Resets the current track number to 1.
-            Updates the play count for each article.
+            Resets the current article number to 1.
+            Updates the read count for each article.
         """
         self.check_if_empty()
-        logger.info("Starting to play the entire journal.")
-        self.current_track_number = 1
-        logger.info("Reset current track number to 1.")
+        logger.info("Starting to read the entire journal.")
+        self.current_article_number = 1
+        logger.info("Reset current article number to 1.")
         for _ in range(self.get_journal_length()):
-            logger.info("Playing track number: %d", self.current_track_number)
-            self.play_current_article()
-        logger.info("Finished playing the entire journal. Current track number reset to 1.")
+            logger.info("Reading article number: %d", self.current_article_number)
+            self.read_current_article()
+        logger.info("Finished reading the entire journal. Current article number reset to 1.")
 
-    def play_rest_of_journal(self) -> None:
+    def read_rest_of_journal(self) -> None:
         """
-        Plays the rest of the journal from the current track.
+        Reads the rest of the journal from the current article.
 
         Side-effects:
-            Updates the current track number back to 1.
-            Updates the play count for each article in the rest of the journal.
+            Updates the current article number back to 1.
+            Updates the read count for each article in the rest of the journal.
         """
         self.check_if_empty()
-        logger.info("Starting to play the rest of the journal from track number: %d", self.current_track_number)
-        for _ in range(self.get_journal_length() - self.current_track_number + 1):
-            logger.info("Playing track number: %d", self.current_track_number)
-            self.play_current_article()
-        logger.info("Finished playing the rest of the journal. Current track number reset to 1.")
+        logger.info("Starting to read the rest of the journal from article number: %d", self.current_article_number)
+        for _ in range(self.get_journal_length() - self.current_article_number + 1):
+            logger.info("Reading article number: %d", self.current_article_number)
+            self.read_current_article()
+        logger.info("Finished reading the rest of the journal. Current article number reset to 1.")
 
     def rewind_journal(self) -> None:
         """
@@ -308,7 +308,7 @@ class JournalModel:
         """
         self.check_if_empty()
         logger.info("Rewinding journal to the beginning.")
-        self.current_track_number = 1
+        self.current_article_number = 1
 
     ##################################################
     # Utility Functions
@@ -342,26 +342,26 @@ class JournalModel:
 
         return article_id
 
-    def validate_track_number(self, track_number: int) -> int:
+    def validate_article_number(self, article_number: int) -> int:
         """
-        Validates the given track number, ensuring it is a non-negative integer within the journal's range.
+        Validates the given article number, ensuring it is a non-negative integer within the journal's range.
 
         Args:
-            track_number (int): The track number to validate.
+            article_number (int): The article number to validate.
 
         Raises:
-            ValueError: If the track number is not a valid non-negative integer or is out of range.
+            ValueError: If the article number is not a valid non-negative integer or is out of range.
         """
         try:
-            track_number = int(track_number)
-            if track_number < 1 or track_number > self.get_journal_length():
-                logger.error("Invalid track number %d", track_number)
-                raise ValueError(f"Invalid track number: {track_number}")
+            article_number = int(article_number)
+            if article_number < 1 or article_number > self.get_journal_length():
+                logger.error("Invalid article number %d", article_number)
+                raise ValueError(f"Invalid article number: {article_number}")
         except ValueError:
-            logger.error("Invalid track number %s", track_number)
-            raise ValueError(f"Invalid track number: {track_number}")
+            logger.error("Invalid article number %s", article_number)
+            raise ValueError(f"Invalid article number: {article_number}")
 
-        return track_number
+        return article_number
 
     def check_if_empty(self) -> None:
         """
