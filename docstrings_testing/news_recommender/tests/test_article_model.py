@@ -85,7 +85,7 @@ def test_create_article(mock_cursor):
                           "2024-12-05T19:58:30Z")
     assert actual_arguments == expected_arguments, f"The SQL query arguments did not match. Expected {expected_arguments}, got {actual_arguments}."
 
-def test_create_song_duplicate(mock_cursor):
+def test_create_article_duplicate(mock_cursor):
     """Test creating a song with a duplicate artist, title, and year (should raise an error)."""
 
     # Simulate that the database will raise an IntegrityError due to a duplicate entry
