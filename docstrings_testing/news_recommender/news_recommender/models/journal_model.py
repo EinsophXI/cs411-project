@@ -10,7 +10,7 @@ configure_logger(logger)
 class JournalModel:
     """
     A class to manage a journal of articles.
-
+  
     Attributes:
         # current_article_number (int): The current article number being readed.
         # journal (List[Article]): The list of articles in the journal.
