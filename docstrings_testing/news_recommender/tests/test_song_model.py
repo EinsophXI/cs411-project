@@ -249,7 +249,7 @@ def test_get_article_by_compound_key(mock_cursor):
     assert actual_arguments == expected_arguments, f"The SQL query arguments did not match. Expected {expected_arguments}, got {actual_arguments}."
 
 def test_get_all_articles(mock_cursor):
-    """Test retrieving all songs that are not marked as deleted."""
+    """Test retrieving all articles that are not marked as deleted."""
 
     # Simulate that there are multiple songs in the database
     mock_cursor.fetchall.return_value = [
