@@ -241,8 +241,8 @@ def update_read_count(article_id: int) -> None:
         logger.error("Database error while updating read count for article with ID %d: %s", article_id, str(e))
         raise e
 
-'''
-def get_all_articles(sort_by_play_count: bool = False) -> list[dict]:
+
+def get_all_articles(sort_by_id: bool = False) -> list[dict]:
     """
     Retrieves all articles that are not marked as deleted from the catalog.
 
@@ -262,12 +262,12 @@ def get_all_articles(sort_by_play_count: bool = False) -> list[dict]:
 
             # Determine the sort order based on the 'sort_by_play_count' flag
             query = """
-                SELECT id, artist, title, year, genre, duration, play_count
-                FROM songs
+                SELECT id, name, author, title, url, content, publishedAt, deleted
+                FROM articles
                 WHERE deleted = FALSE
             """
-            if sort_by_play_count:
-                query += " ORDER BY play_count DESC"
+            if sort_by_id:
+                query += " ORDER BY id DESC"
 
             cursor.execute(query)
             rows = cursor.fetchall()
@@ -276,25 +276,25 @@ def get_all_articles(sort_by_play_count: bool = False) -> list[dict]:
                 logger.warning("The song catalog is empty.")
                 return []
 
-            songs = [
+            articles = [
                 {
                     "id": row[0],
-                    "artist": row[1],
-                    "title": row[2],
-                    "year": row[3],
-                    "genre": row[4],
-                    "duration": row[5],
-                    "play_count": row[6],
+                    "name": row[1],
+                    "author": row[2],
+                    "title": row[3],
+                    "url": row[4],
+                    "content": row[5],
+                    "publishedAt": row[6]
                 }
                 for row in rows
             ]
-            logger.info("Retrieved %d songs from the catalog", len(songs))
-            return songs
+            logger.info("Retrieved %d songs from the catalog", len(articles))
+            return articles
 
     except sqlite3.Error as e:
         logger.error("Database error while retrieving all songs: %s", str(e))
         raise e
-
+'''
 def get_random_article() -> Article:
     """
     Retrieves a random song from the catalog.
@@ -330,42 +330,40 @@ def get_random_article() -> Article:
     except Exception as e:
         logger.error("Error while retrieving random song: %s", str(e))
         raise e
-
-def add_note_to_content(article_id: int) -> None:
-    """
-    adds a note at the end of an article's content
-    notes will be contained within *&   &*
-
-    Args:
-        song_id (int): The ID of the song whose play count should be incremented.
-
-    Raises:
-        ValueError: If the song does not exist or is marked as deleted.
-        sqlite3.Error: If there is a database error.
-    """
+'''
+def add_note_to_content(article_id: int, text_to_add: str):
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            logger.info("Attempting to update play count for song with ID %d", song_id)
-
-            # Check if the song exists and if it's deleted
-            cursor.execute("SELECT deleted FROM songs WHERE id = ?", (song_id,))
-            try:
-                deleted = cursor.fetchone()[0]
-                if deleted:
-                    logger.info("Song with ID %d has been deleted", song_id)
-                    raise ValueError(f"Song with ID {song_id} has been deleted")
-            except TypeError:
-                logger.info("Song with ID %d not found", song_id)
-                raise ValueError(f"Song with ID {song_id} not found")
-
-            # Increment the play count
-            cursor.execute("UPDATE songs SET play_count = play_count + 1 WHERE id = ?", (song_id,))
-            conn.commit()
-
-            logger.info("Play count incremented for song with ID: %d", song_id)
-
+            
+            # Step 1: Retrieve the content of the article by its id
+            cursor.execute("SELECT content FROM articles WHERE id = ?", (article_id,))
+            row = cursor.fetchone()
+            
+            if row:
+                content = row[0]
+                
+                # Step 2: Check if the content contains the *& and &* markers
+                start_marker = "*&"
+                end_marker = "&*"
+                
+                start_idx = content.find(start_marker)
+                end_idx = content.find(end_marker, start_idx + len(start_marker))
+                
+                if start_idx != -1 and end_idx != -1 and start_idx < end_idx:
+                    # Step 3: Insert the new text within the markers if both markers are found
+                    new_content = content[:start_idx + len(start_marker)] + text_to_add + content[end_idx:]
+                    print("Markers found. Text inserted between them.")
+                else:
+                    # Step 4: If markers are missing, create them and add the text
+                    new_content = start_marker + text_to_add + end_marker
+                    print("Markers not found. Markers created and text added.")
+                    
+                # Step 5: Update the content back to the database
+                cursor.execute("UPDATE articles SET content = ? WHERE id = ?", (new_content, article_id))
+                print(f"Content updated successfully for article id {article_id}")
+            else:
+                print(f"Article with id {article_id} not found.")
+    
     except sqlite3.Error as e:
-        logger.error("Database error while updating play count for song with ID %d: %s", song_id, str(e))
-        raise e
-'''
+        print(f"Database error: {str(e)}")

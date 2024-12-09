@@ -11,7 +11,7 @@ from news_recommender.models.article_model import (
     delete_article,
     #get_song_by_id,
     get_article_by_compound_key,
-    #get_all_songs,
+    get_all_articles,
     #get_random_song,
     update_read_count
 )
@@ -247,39 +247,39 @@ def test_get_article_by_compound_key(mock_cursor):
     # Assert that the SQL query was executed with the correct arguments
     expected_arguments = ("Name", "Title", "URL")
     assert actual_arguments == expected_arguments, f"The SQL query arguments did not match. Expected {expected_arguments}, got {actual_arguments}."
-'''
+
 def test_get_all_songs(mock_cursor):
     """Test retrieving all songs that are not marked as deleted."""
 
     # Simulate that there are multiple songs in the database
     mock_cursor.fetchall.return_value = [
-        (1, "Artist A", "Song A", 2020, "Rock", 210, 10, False),
-        (2, "Artist B", "Song B", 2021, "Pop", 180, 20, False),
-        (3, "Artist C", "Song C", 2022, "Jazz", 200, 5, False)
+        (1, "Name 1", "Author 1", "Title 1", "URL 1", "Content 1", "2024-1", False),
+        (2, "Name 2", "Author 2", "Title 2", "URL 2", "Content 2", "2024-2", False),
+        (3, "Name 3", "Author 3", "Title 3", "URL 3", "Content 3", "2024-3", False)
     ]
 
     # Call the get_all_songs function
-    songs = get_all_songs()
+    articles = get_all_articles()
 
     # Ensure the results match the expected output
     expected_result = [
-        {"id": 1, "artist": "Artist A", "title": "Song A", "year": 2020, "genre": "Rock", "duration": 210, "play_count": 10},
-        {"id": 2, "artist": "Artist B", "title": "Song B", "year": 2021, "genre": "Pop", "duration": 180, "play_count": 20},
-        {"id": 3, "artist": "Artist C", "title": "Song C", "year": 2022, "genre": "Jazz", "duration": 200, "play_count": 5}
+    {"id": 1, "name": "Name 1", "author": "Author 1", "title": "Title 1", "url": "URL 1", "content": "Content 1", "publishedAt": "2024-1"},
+    {"id": 2, "name": "Name 2", "author": "Author 2", "title": "Title 2", "url": "URL 2", "content": "Content 2", "publishedAt": "2024-2"},
+    {"id": 3, "name": "Name 3", "author": "Author 3", "title": "Title 3", "url": "URL 3", "content": "Content 3", "publishedAt": "2024-3"}
     ]
 
-    assert songs == expected_result, f"Expected {expected_result}, but got {songs}"
+    assert articles == expected_result, f"Expected {expected_result}, but got {articles}"
 
     # Ensure the SQL query was executed correctly
     expected_query = normalize_whitespace("""
-        SELECT id, artist, title, year, genre, duration, play_count
-        FROM songs
+        SELECT id, name, author, title, url, content, publishedAt, deleted
+        FROM articles
         WHERE deleted = FALSE
     """)
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
 
     assert actual_query == expected_query, "The SQL query did not match the expected structure."
-
+'''
 def test_get_all_songs_empty_catalog(mock_cursor, caplog):
     """Test that retrieving all songs returns an empty list when the catalog is empty and logs a warning."""
 
