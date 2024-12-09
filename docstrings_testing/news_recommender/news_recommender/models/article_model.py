@@ -25,7 +25,7 @@ class Article:
         if self.name.len <= 0:
             raise ValueError(f"Name must contain 1 or more letters, got none")
         if self.publishedAt.split('-')[0] <= 1900:
-            raise ValueError(f"Year must be greater than 1900, got {self.year}")
+            raise ValueError(f"Year must be greater than 1900, got {self.publishedAt}")
 
 
 def create_article(name: str, author: str, title: str, url: str, content: str, publishedAt: str) -> None:
@@ -55,16 +55,16 @@ def create_article(name: str, author: str, title: str, url: str, content: str, p
         with get_db_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
-                INSERT INTO songs (artist, title, year, genre, duration)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO articles (name, author, title, url, content, publishedAt)
+                VALUES (?, ?, ?, ?, ?, ?)
             """, (name, author, title, url, content, publishedAt))
             conn.commit()
 
-            logger.info("Song created successfully: %s - %s (%d)", artist, title, year)
+            logger.info("Article created successfully: %s - %s (%s)", author, title, url)
 
     except sqlite3.IntegrityError as e:
-        logger.error("Song with artist '%s', title '%s', and year %d already exists.", artist, title, year)
-        raise ValueError(f"Song with writer '{name}', title '{title}', and url {url} already exists.") from e
+        logger.error("Article with author '%s', title '%s', and url %s already exists.", author, title, url)
+        raise ValueError(f"Article with writer '{name}', title '{title}', and url {url} already exists.") from e
     except sqlite3.Error as e:
         logger.error("Database error while creating song: %s", str(e))
         raise sqlite3.Error(f"Database error: {str(e)}")

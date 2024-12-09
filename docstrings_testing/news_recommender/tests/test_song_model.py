@@ -61,7 +61,7 @@ def test_create_article(mock_cursor):
                    content="Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ")
 
     expected_query = normalize_whitespace("""
-        INSERT INTO songs (name, author, title, url, content, publishedAt)
+        INSERT INTO articles (name, author, title, url, content, publishedAt)
         VALUES (?, ?, ?, ?, ?, ?)
     """)
 
@@ -74,8 +74,13 @@ def test_create_article(mock_cursor):
     actual_arguments = mock_cursor.execute.call_args[0][1]
 
     # Assert that the SQL query was executed with the correct arguments
+    create_article(name="Name", author="Article Author", title="How pigeons fly",
+                   
+                   url="https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
+                   content="Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ", 
+                   publishedAt="2024-12-05T19:58:30Z")
     expected_arguments = ("Name", "Article Author", "How pigeons fly", 
-                          "https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d",
+                          "https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
                           "Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ",
                           "2024-12-05T19:58:30Z")
     assert actual_arguments == expected_arguments, f"The SQL query arguments did not match. Expected {expected_arguments}, got {actual_arguments}."
@@ -84,13 +89,16 @@ def test_create_song_duplicate(mock_cursor):
     """Test creating a song with a duplicate artist, title, and year (should raise an error)."""
 
     # Simulate that the database will raise an IntegrityError due to a duplicate entry
-    mock_cursor.execute.side_effect = sqlite3.IntegrityError("UNIQUE constraint failed: songs.artist, songs.title, songs.year")
+    mock_cursor.execute.side_effect = sqlite3.IntegrityError("UNIQUE constraint failed: articles.name, articles.title, articles.url")
 
     # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
-    with pytest.raises(ValueError, match="Song with article name 'Name', author 'Article Author', and url https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d already exists."):
+    with pytest.raises(ValueError, match="Article with writer 'Name', title 'How pigeons fly', and url https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d already exists."):
         create_article(name="Name", author="Article Author", title="How pigeons fly",
-                   publishedAt="2024-12-05T19:58:30Z", url="https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
-                   content="Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ")
+                   
+                   url="https://newsapi.org/v2/everything?q=tesla&from=2024-11-06&sortBy=publishedAt&apiKey=e616acff8a674cfc8ba4648026e85f1d", 
+                   content="Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ", 
+                   publishedAt="2024-12-05T19:58:30Z")
+                   
 '''
 def test_create_song_invalid_duration():
     """Test error when trying to create a song with an invalid duration (e.g., negative duration)"""
