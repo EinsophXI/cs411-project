@@ -71,7 +71,7 @@ def create_article(name: str, author: str, title: str, url: str, content: str, p
 '''
 def clear_catalog() -> None:
     """
-    Recreates the songs table, effectively deleting all songs.
+    Recreates the article table, effectively deleting all songs.
 
     Raises:
         sqlite3.Error: If any database error occurs.
@@ -90,9 +90,9 @@ def clear_catalog() -> None:
         logger.error("Database error while clearing catalog: %s", str(e))
         raise e
 
-def delete_song(song_id: int) -> None:
+def delete_article(song_id: int) -> None:
     """
-    Soft deletes a song from the catalog by marking it as deleted.
+    Soft deletes an article from the catalog by marking it as deleted.
 
     Args:
         song_id (int): The ID of the song to delete.
@@ -126,9 +126,9 @@ def delete_song(song_id: int) -> None:
         logger.error("Database error while deleting song: %s", str(e))
         raise e
 
-def get_song_by_id(song_id: int) -> Song:
+def get_article_by_url(song_id: int) -> Song:
     """
-    Retrieves a song from the catalog by its song ID.
+    Retrieves an article from the catalog by its url.
 
     Args:
         song_id (int): The ID of the song to retrieve.
@@ -164,9 +164,9 @@ def get_song_by_id(song_id: int) -> Song:
         logger.error("Database error while retrieving song by ID %s: %s", song_id, str(e))
         raise e
 
-def get_song_by_compound_key(artist: str, title: str, year: int) -> Song:
+def get_article_by_compound_key(name: str, author: str, url: str) -> Article:
     """
-    Retrieves a song from the catalog by its compound key (artist, title, year).
+    Retrieves a song from the catalog by its compound key (name, author, url).
 
     Args:
         artist (str): The artist of the song.
@@ -204,9 +204,9 @@ def get_song_by_compound_key(artist: str, title: str, year: int) -> Song:
         logger.error("Database error while retrieving song by compound key (artist '%s', title '%s', year %d): %s", artist, title, year, str(e))
         raise e
 
-def get_all_songs(sort_by_play_count: bool = False) -> list[dict]:
+def get_all_articles(sort_by_play_count: bool = False) -> list[dict]:
     """
-    Retrieves all songs that are not marked as deleted from the catalog.
+    Retrieves all articles that are not marked as deleted from the catalog.
 
     Args:
         sort_by_play_count (bool): If True, sort the songs by play count in descending order.
@@ -257,7 +257,7 @@ def get_all_songs(sort_by_play_count: bool = False) -> list[dict]:
         logger.error("Database error while retrieving all songs: %s", str(e))
         raise e
 
-def get_random_song() -> Song:
+def get_random_article() -> Article:
     """
     Retrieves a random song from the catalog.
 
@@ -293,9 +293,10 @@ def get_random_song() -> Song:
         logger.error("Error while retrieving random song: %s", str(e))
         raise e
 
-def update_play_count(song_id: int) -> None:
+def add_note_to_content(article_id: int) -> None:
     """
-    Increments the play count of a song by song ID.
+    adds a note at the end of an article's content
+    notes will be contained within *&   &*
 
     Args:
         song_id (int): The ID of the song whose play count should be incremented.
