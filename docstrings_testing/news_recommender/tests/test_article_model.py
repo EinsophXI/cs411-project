@@ -3,8 +3,10 @@ import re
 import sqlite3
 from unittest.mock import MagicMock, patch
 import pytest
+
+
 @pytest.fixture
-def mock_db_connection():
+def mock_db_connection(): #implemented solely for testing download_article
     """Fixture that mocks the database connection and cursor."""
     # Create a mock connection and cursor
     mock_conn = MagicMock()
