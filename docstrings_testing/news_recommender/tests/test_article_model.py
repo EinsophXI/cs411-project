@@ -117,19 +117,19 @@ def test_create_article_duplicate(mock_cursor):
                    content="Smaller public companies are taking a leaf out of MicroStrategys radical playbook by adopting a Bitcoin treasury strategy. And one is even adding in the Ripple-linked XRP, too.\r\nThe latest is auto fi… ", 
                    publishedAt="2024-12-05T19:58:30Z")
                    
-'''
 
-def test_create_song_invalid_year():
+
+def test_create_article_invalid_date():
     """Test error when trying to create a song with an invalid year (e.g., less than 1900 or non-integer)."""
 
     # Attempt to create a song with a year less than 1900
-    with pytest.raises(ValueError, match="Invalid year provided: 1899 (must be an integer greater than or equal to 1900)."):
-        create_song(artist="Artist Name", title="Song Title", year=1899, genre="Pop", duration=180)
+    with pytest.raises(ValueError, match=r"Invalid year provided: 1899 \(must be an integer greater than or equal to 1900\)."):
+        create_article(1, "Article", "Author", "Title", "url", "content", '1899-12-05T19:58:30Z')
 
     # Attempt to create a song with a non-integer year
-    with pytest.raises(ValueError, match="Invalid year provided: invalid (must be an integer greater than or equal to 1900)."):
-        create_song(artist="Artist Name", title="Song Title", year="invalid", genre="Pop", duration=180)
-'''
+    with pytest.raises(ValueError, match=r"Expected a string for publishedAt, but got <class 'int'>"):
+        create_article(1, "Article", "Author", "Title", "url", "content", 1899)
+
 def test_delete_song(mock_cursor):
     """Test soft deleting a song from the catalog by song ID."""
 
@@ -351,58 +351,6 @@ def test_get_all_songs_ordered_by_play_count(mock_cursor):
     """)
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
 
-    assert actual_query == expected_query, "The SQL query did not match the expected structure."
-
-def test_get_random_song(mock_cursor, mocker):
-    """Test retrieving a random song from the catalog."""
-
-    # Simulate that there are multiple songs in the database
-    mock_cursor.fetchall.return_value = [
-        (1, "Artist A", "Song A", 2020, "Rock", 210, 10),
-        (2, "Artist B", "Song B", 2021, "Pop", 180, 20),
-        (3, "Artist C", "Song C", 2022, "Jazz", 200, 5)
-    ]
-
-    # Mock random number generation to return the 2nd song
-    mock_random = mocker.patch("music_collection.models.song_model.get_random", return_value=2)
-
-    # Call the get_random_song method
-    result = get_random_song()
-
-    # Expected result based on the mock random number and fetchall return value
-    expected_result = Song(2, "Artist B", "Song B", 2021, "Pop", 180)
-
-    # Ensure the result matches the expected output
-    assert result == expected_result, f"Expected {expected_result}, got {result}"
-
-    # Ensure that the random number was called with the correct number of songs
-    mock_random.assert_called_once_with(3)
-
-    # Ensure the SQL query was executed correctly
-    expected_query = normalize_whitespace("SELECT id, artist, title, year, genre, duration, play_count FROM songs WHERE deleted = FALSE")
-    actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
-
-    # Assert that the SQL query was correct
-    assert actual_query == expected_query, "The SQL query did not match the expected structure."
-
-def test_get_random_song_empty_catalog(mock_cursor, mocker):
-    """Test retrieving a random song when the catalog is empty."""
-
-    # Simulate that the catalog is empty
-    mock_cursor.fetchall.return_value = []
-
-    # Expect a ValueError to be raised when calling get_random_song with an empty catalog
-    with pytest.raises(ValueError, match="The song catalog is empty"):
-        get_random_song()
-
-    # Ensure that the random number was not called since there are no songs
-    mocker.patch("music_collection.models.song_model.get_random").assert_not_called()
-
-    # Ensure the SQL query was executed correctly
-    expected_query = normalize_whitespace("SELECT id, artist, title, year, genre, duration, play_count FROM songs WHERE deleted = FALSE")
-    actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
-
-    # Assert that the SQL query was correct
     assert actual_query == expected_query, "The SQL query did not match the expected structure."
 '''
 

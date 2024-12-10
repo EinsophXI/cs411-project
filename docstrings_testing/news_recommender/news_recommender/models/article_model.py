@@ -26,9 +26,9 @@ class Article:
     publishedAt: str  
 
     def __post_init__(self):
-        if self.id <= 0:
-            raise ValueError(f"ID must be greated than 0")
-        if int(self.publishedAt.split('-')[0]) <= 1900:
+        if not isinstance(self.publishedAt, str):
+            raise ValueError(f"Expected a string for publishedAt, but got {type(self.publishedAt).__name__}.")
+        elif int(self.publishedAt.split('-')[0]) <= 1900:
             raise ValueError(f"Year must be greater than 1900, got {self.publishedAt}")
 
 
@@ -49,7 +49,9 @@ def create_article(id: int, name: str, author: str, title: str, url: str, conten
         sqlite3.Error: For any other database errors.
     """
     # Validate the required fields
-    if not isinstance(publishedAt, str) or int(publishedAt.split('-')[0]) < 1900:
+    if not isinstance(publishedAt, str):
+        raise ValueError(f"Expected a string for publishedAt, but got {type(publishedAt)}")
+    if int(publishedAt.split('-')[0]) < 1900:
         raise ValueError(f"Invalid year provided: {publishedAt.split('-')[0]} (must be an integer greater than or equal to 1900).")
     if not isinstance(content, str) or len(content) <= 0:
         raise ValueError(f"Invalid content length: {content} (must contain many letters).")
@@ -297,43 +299,7 @@ def get_all_articles(sort_by_id: bool = False) -> list[dict]:
     except sqlite3.Error as e:
         logger.error("Database error while retrieving all songs: %s", str(e))
         raise e
-'''
-def get_random_article() -> Article:
-    """
-    Retrieves a random song from the catalog.
 
-    Returns:
-        Song: A randomly selected Song object.
-
-    Raises:
-        ValueError: If the catalog is empty.
-    """
-    try:
-        all_songs = get_all_songs()
-
-        if not all_songs:
-            logger.info("Cannot retrieve random song because the song catalog is empty.")
-            raise ValueError("The song catalog is empty.")
-
-        # Get a random index using the random.org API
-        random_index = get_random(len(all_songs))
-        logger.info("Random index selected: %d (total songs: %d)", random_index, len(all_songs))
-
-        # Return the song at the random index, adjust for 0-based indexing
-        song_data = all_songs[random_index - 1]
-        return Song(
-            id=song_data["id"],
-            artist=song_data["artist"],
-            title=song_data["title"],
-            year=song_data["year"],
-            genre=song_data["genre"],
-            duration=song_data["duration"]
-        )
-
-    except Exception as e:
-        logger.error("Error while retrieving random song: %s", str(e))
-        raise e
-'''
 def add_note_to_content(article_id: int, text_to_add: str):
     try:
         with get_db_connection() as conn:
