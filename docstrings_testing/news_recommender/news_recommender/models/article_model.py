@@ -152,7 +152,7 @@ def get_article_by_id(article_id: int) -> Article:
             row = cursor.fetchone()
 
             if row:
-                if row[7]:  # deleted flag
+                if row[8]:  # deleted flag
                     logger.info("Article with ID %s has been deleted", article_id)
                     raise ValueError(f"Article with ID {article_id} has been deleted")
                 logger.info("Article with ID %s found", article_id)
@@ -191,7 +191,7 @@ def get_article_by_compound_key(name: str, title: str, url: str) -> Article:
             """, (name, title, url,))
             row = cursor.fetchone()
             if row:
-                if row[7]:  # deleted flag
+                if row[8]:  # deleted flag
                     logger.info("Article with name %s, title %s, and url %s has been deleted", name, title, url)
                     raise ValueError(f"Article with name {name}, title {title}, and url {url} has been deleted")
                 logger.info("Article with name %s, title %s, and url %s has been found", name, title, url)
@@ -273,7 +273,7 @@ def get_all_articles(sort_by_id: bool = False) -> list[dict]:
             rows = cursor.fetchall()
 
             if not rows:
-                logger.warning("The song catalog is empty.")
+                logger.warning("The article catalog is empty.")
                 return []
 
             articles = [
