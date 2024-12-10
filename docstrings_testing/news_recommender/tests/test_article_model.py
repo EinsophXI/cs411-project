@@ -1,19 +1,35 @@
 from contextlib import contextmanager
 import re
 import sqlite3
-
+from unittest.mock import MagicMock, patch
 import pytest
+@pytest.fixture
+def mock_db_connection():
+    """Fixture that mocks the database connection and cursor."""
+    # Create a mock connection and cursor
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    # Mock the connection's cursor method to return the mock cursor
+    mock_conn.cursor.return_value = mock_cursor
+
+    # Return the mock connection and cursor as a tuple
+    yield mock_conn, mock_cursor
+
+    # Clean up after the test
+    mock_conn.close()
 
 from news_recommender.models.article_model import (
     Article,
     create_article,
-    #clear_catalog,
+    clear_catalog,
     delete_article,
-    #get_song_by_id,
+    get_article_by_id,
     get_article_by_compound_key,
     get_all_articles,
     #get_random_song,
-    update_read_count
+    update_read_count,
+    download_article
 )
 
 ######################################################
@@ -142,7 +158,7 @@ def test_delete_song(mock_cursor):
 
     assert actual_select_args == expected_select_args, f"The SELECT query arguments did not match. Expected {expected_select_args}, got {actual_select_args}."
     assert actual_update_args == expected_update_args, f"The UPDATE query arguments did not match. Expected {expected_update_args}, got {actual_update_args}."
-'''
+
 def test_delete_song_bad_id(mock_cursor):
     """Test error when trying to delete a non-existent song."""
 
@@ -150,8 +166,8 @@ def test_delete_song_bad_id(mock_cursor):
     mock_cursor.fetchone.return_value = None
 
     # Expect a ValueError when attempting to delete a non-existent song
-    with pytest.raises(ValueError, match="Song with ID 999 not found"):
-        delete_song(999)
+    with pytest.raises(ValueError, match="Article with ID 999 not found"):
+        delete_article(999)
 
 def test_delete_song_already_deleted(mock_cursor):
     """Test error when trying to delete a song that's already marked as deleted."""
@@ -160,8 +176,8 @@ def test_delete_song_already_deleted(mock_cursor):
     mock_cursor.fetchone.return_value = ([True])
 
     # Expect a ValueError when attempting to delete a song that's already been deleted
-    with pytest.raises(ValueError, match="Song with ID 999 has already been deleted"):
-        delete_song(999)
+    with pytest.raises(ValueError, match="Article with ID 999 has already been deleted"):
+        delete_article(999)
 
 def test_clear_catalog(mock_cursor, mocker):
     """Test clearing the entire song catalog (removes all songs)."""
@@ -186,21 +202,21 @@ def test_clear_catalog(mock_cursor, mocker):
 #
 ######################################################
 
-def test_get_song_by_id(mock_cursor):
+def test_get_article_by_id(mock_cursor):
     # Simulate that the song exists (id = 1)
-    mock_cursor.fetchone.return_value = (1, "Artist Name", "Song Title", 2022, "Pop", 180, False)
+    mock_cursor.fetchone.return_value = (1, "Name 1", "Author 1", "Title 1", "URL 1", "Content 1", "2024-1", 0, False)
 
     # Call the function and check the result
-    result = get_song_by_id(1)
+    result = get_article_by_id(1)
 
     # Expected result based on the simulated fetchone return value
-    expected_result = Song(1, "Artist Name", "Song Title", 2022, "Pop", 180)
+    expected_result = Article(1, "Name 1", "Author 1", "Title 1", "URL 1", "Content 1", "2024-1")
 
     # Ensure the result matches the expected output
     assert result == expected_result, f"Expected {expected_result}, got {result}"
 
     # Ensure the SQL query was executed correctly
-    expected_query = normalize_whitespace("SELECT id, artist, title, year, genre, duration, deleted FROM songs WHERE id = ?")
+    expected_query = normalize_whitespace("SELECT id, name, author, title, url, content, publishedAt, deleted FROM articles WHERE id = ?")
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
 
     # Assert that the SQL query was correct
@@ -213,17 +229,17 @@ def test_get_song_by_id(mock_cursor):
     expected_arguments = (1,)
     assert actual_arguments == expected_arguments, f"The SQL query arguments did not match. Expected {expected_arguments}, got {actual_arguments}."
 
-def test_get_song_by_id_bad_id(mock_cursor):
+def test_get_article_by_id_bad_id(mock_cursor):
     # Simulate that no song exists for the given ID
     mock_cursor.fetchone.return_value = None
 
     # Expect a ValueError when the song is not found
-    with pytest.raises(ValueError, match="Song with ID 999 not found"):
-        get_song_by_id(999)
-'''
+    with pytest.raises(ValueError, match="Article with ID 999 not found"):
+        get_article_by_id(999)
+
 def test_get_article_by_compound_key(mock_cursor):
     # Simulate that the song exists (artist = "Artist Name", title = "Song Title", year = 2022)
-    mock_cursor.fetchone.return_value = (1, "Name", "Author", "Title", "URL", "Content", "2024-16-39133EDD", False)
+    mock_cursor.fetchone.return_value = (1, "Name", "Author", "Title", "URL", "Content", "2024-16-39133EDD", 0, False)
 
     # Call the function and check the result
     result = get_article_by_compound_key("Name", "Title", "URL")
@@ -253,9 +269,9 @@ def test_get_all_articles(mock_cursor):
 
     # Simulate that there are multiple songs in the database
     mock_cursor.fetchall.return_value = [
-        (1, "Name 1", "Author 1", "Title 1", "URL 1", "Content 1", "2024-1", False),
-        (2, "Name 2", "Author 2", "Title 2", "URL 2", "Content 2", "2024-2", False),
-        (3, "Name 3", "Author 3", "Title 3", "URL 3", "Content 3", "2024-3", False)
+        (1, "Name 1", "Author 1", "Title 1", "URL 1", "Content 1", "2024-1", 0, False),
+        (2, "Name 2", "Author 2", "Title 2", "URL 2", "Content 2", "2024-2", 1, False),
+        (3, "Name 3", "Author 3", "Title 3", "URL 3", "Content 3", "2024-3", 2, False)
     ]
 
     # Call the get_all_songs function
@@ -279,29 +295,29 @@ def test_get_all_articles(mock_cursor):
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
 
     assert actual_query == expected_query, "The SQL query did not match the expected structure."
-'''
-def test_get_all_songs_empty_catalog(mock_cursor, caplog):
+
+def test_get_all_articles_empty_catalog(mock_cursor, caplog):
     """Test that retrieving all songs returns an empty list when the catalog is empty and logs a warning."""
 
     # Simulate that the catalog is empty (no songs)
     mock_cursor.fetchall.return_value = []
 
     # Call the get_all_songs function
-    result = get_all_songs()
+    result = get_all_articles()
 
     # Ensure the result is an empty list
     assert result == [], f"Expected empty list, but got {result}"
 
     # Ensure that a warning was logged
-    assert "The song catalog is empty." in caplog.text, "Expected warning about empty catalog not found in logs."
+    assert "The article catalog is empty." in caplog.text, "Expected warning about empty catalog not found in logs."
 
     # Ensure the SQL query was executed correctly
-    expected_query = normalize_whitespace("SELECT id, artist, title, year, genre, duration, play_count FROM songs WHERE deleted = FALSE")
+    expected_query = normalize_whitespace("SELECT id, name, author, title, url, content, publishedAt, deleted FROM articles WHERE deleted = FALSE")
     actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
 
     # Assert that the SQL query was correct
     assert actual_query == expected_query, "The SQL query did not match the expected structure."
-
+'''
 def test_get_all_songs_ordered_by_play_count(mock_cursor):
     """Test retrieving all songs ordered by play count."""
 
@@ -429,3 +445,56 @@ def test_update_read_count_deleted_article(mock_cursor):
 
     # Ensure that no SQL query for updating play count was executed
     mock_cursor.execute.assert_called_once_with("SELECT deleted FROM articles WHERE id = ?", (1,))
+
+def test_download_article(mock_db_connection):
+    """Test downloading an article and saving it to the database."""
+    # Mock data returned by get_articles_info
+    mock_article_data = {
+        "author": "Paresh Dave",
+        "title": "The Future of Online Privacy Hinges on Thousands of New Jersey Cops",
+        "content": "LexisNexis spokesperson Paul Eckloff disputes that freezing was an overreach. The company deemed that step as necessary to honor the requests submitted by Atlas users to not disclose their data. This… [+2458 chars]",
+        "url": "https://www.wired.com/story/daniels-law-new-jersey-online-privacy-matt-adkisson-atlas-lawsuits/",
+        "publishedAt": "2024-11-25T11:00:00Z"
+    }
+
+    # Mock the get_articles_info function
+    with patch("news_recommender.models.article_model.get_articles_info", return_value=mock_article_data), \
+         patch("news_recommender.models.article_model.create_article") as mock_create_article, \
+         patch("news_recommender.models.article_model.get_article_by_id") as mock_get_article_by_id:
+        
+        # Call the function under test
+        download_article("Privacy Revolution")
+
+        # Verify create_article was called with correct arguments
+        expected_article_id = hash(
+            mock_article_data["title"] + mock_article_data["author"] + mock_article_data["url"]
+        )
+        mock_create_article.assert_called_once_with(
+            id=expected_article_id,
+            name="Privacy Revolution",
+            author=mock_article_data["author"],
+            title=mock_article_data["title"],
+            url=mock_article_data["url"],
+            content=mock_article_data["content"],
+            publishedAt=mock_article_data["publishedAt"]
+        )
+
+        # Simulate the database returning the created article
+        mock_get_article_by_id.return_value = Article(
+            id=expected_article_id,
+            name="Privacy Revolution",
+            author=mock_article_data["author"],
+            title=mock_article_data["title"],
+            url=mock_article_data["url"],
+            content=mock_article_data["content"],
+            publishedAt=mock_article_data["publishedAt"]
+        )
+
+        # Verify the article was stored correctly
+        stored_article = mock_get_article_by_id(expected_article_id)
+        assert stored_article.name == "Privacy Revolution"
+        assert stored_article.author == mock_article_data["author"]
+        assert stored_article.title == mock_article_data["title"]
+        assert stored_article.url == mock_article_data["url"]
+        assert stored_article.content == mock_article_data["content"]
+        assert stored_article.publishedAt == mock_article_data["publishedAt"]

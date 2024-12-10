@@ -36,7 +36,7 @@ def get_articles_info(keyword: str, num_arts: int) -> str:
             author = article.get('author', 'No Author')
             title = article.get('title', 'No Title')
             description = article.get('description', 'No Description')
-            articleurl = article.get('url', 'No URL')
+            url = article.get('url', 'No URL')
             published_at = article.get('publishedAt', 'No Date')
             content = article.get('content', 'No Content')
             
@@ -50,7 +50,7 @@ def get_articles_info(keyword: str, num_arts: int) -> str:
                     published_at = "Invalid Date Format"
             
             logger.info("Received article: %s", article)
-            return f"Name: {name}\nAuthor: {author}\nTitle: {title}\nDescription: {description}\nURL: {articleurl}\nPublished At: {published_at}\nContent: {content}"
+            return f"Name: {name}\nAuthor: {author}\nTitle: {title}\nDescription: {description}\nURL: {url}\nPublished At: {published_at}\nContent: {content}"
         else:
             logger.warning("No articles found for keyword: %s", keyword)
             return "No articles found."
