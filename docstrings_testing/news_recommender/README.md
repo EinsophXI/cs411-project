@@ -116,6 +116,7 @@ Route: /create-article
                             "Article Name": article_name}
     ● Example Request:
         {
+        "id": 1
         "name": "Basho is severely overrated. Here's why."
         "author": "BU Today",
         "title": "Basho is severely overrated. Here's why."
@@ -127,6 +128,36 @@ Route: /create-article
         {
         "message": "Articles retrieved successfully",
         "Article Name": "Basho is severely overrated. Here's why."
+        }
+
+Route: /add-article-to-journal
+    ● Request Type: POST
+    ● Purpose: Adds article to journal.
+    ● Request Body:
+        ○ id (int): ID of article,
+        ○ name (String): Name of article,
+        ○ author (String): Author of article,
+        ○ title (String): Title of article,
+        ○ url (String): URL of article,
+        ○ content (String): Content of article,
+        ○ publishedAt (String): Date article was published.
+    ● Response Format: JSON
+        ○ Success Response Example:
+            ■ Code: 200
+            ■ Content: { "message": Article sucessfully added to journal}
+    ● Example Request:
+        {
+        "id": 1
+        "name": "Basho is severely overrated. Here's why."
+        "author": "BU Today",
+        "title": "Basho is severely overrated. Here's why."
+        "url": www.linkedin.com
+        "content": Lorem Ipsum
+        "publishedAt": "22-11-2023"
+        }
+    ● Example Response:
+        {
+        "message": "Article sucessfully added to journal",
         }
 
 Route: /get-article-by-id

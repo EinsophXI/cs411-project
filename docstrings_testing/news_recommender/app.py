@@ -7,7 +7,9 @@ import binascii
 
 from news_recommender.models.article_model import Article
 from news_recommender.models.journal_model import JournalModel
+from news_recommender.models import article_model
 
+journal_model = JournalModel()
 
 app = Flask(__name__)
 
@@ -193,6 +195,7 @@ def create_article() -> Response:
         data = request.get_json()
 
         # Extract and validate required fields
+        id = data.get('id')
         name = data.get('name')
         author = data.get('author')
         title = data.get('title')
@@ -201,7 +204,7 @@ def create_article() -> Response:
         publishedAt = data.get('publishedAt')
 
 
-        if not name or not author or not title or not url or not content or not publishedAt:
+        if not id or not name or not author or not title or not url or not content or not publishedAt:
             return make_response(jsonify({'error': 'Invalid input, all fields are required with valid values'}), 400)
 
         # Check that publishedAt is in date format and is in DD-MM-YYYY
@@ -220,14 +223,57 @@ def create_article() -> Response:
 
         # Call the kitchen_model function to add the combatant to the database
         app.logger.info('Adding article: %s, %s, %s, %s, %s, %s', name, author, title, url, content, publishedAt)
-        Article.create_article(name, author, title, url, content, publishedAt)
+        article_model.create_article(name, author, title, url, content, publishedAt)
 
         app.logger.info("Article added: %s", name)
-        return make_response(jsonify({'status': 'success', 'article name': name}), 201)
+        return make_response(jsonify({'status': 'success', 'message': 'Articles retrieved successfully','article name': name}), 201)
     except Exception as e:
         app.logger.error("Failed to add article: %s", str(e))
         return make_response(jsonify({'error': str(e)}), 500)
+    
+@app.route('/api/add-article-to-journal', methods=['POST'])
+def add_article_to_journal() -> Response:
+    """
+    Route to add a article to the journal by compound key (author, title, url).
 
+    Expected JSON Input:
+        - id (int) = The article ID.
+        - name (str) = The article name.
+        - author (str) = The article author.
+        - title (str) = The article title.
+        - url (str) = The article url.
+        - content (str) = The article content.
+        - publishedAt (str) = The article publish date.
+
+    Returns:
+        JSON response indicating success of the addition or error message.
+    """
+    try:
+        data = request.get_json()
+
+        id = data.get('id')
+        name = data.get('name')
+        author = data.get('author')
+        title = data.get('title')
+        url = data.get('url')
+        content = data.get('content')
+        publishedAt = data.get('publishedAt')
+
+        if not id or not name or not author or not title or not url or not content or not publishedAt:
+            return make_response(jsonify({'error': 'Invalid input. ID, name, author, title, url, content, and publish date are required.'}), 400)
+
+        # Lookup the song by compound key
+        article = article_model.get_article_by_compound_key(name, title, url)
+
+        # Add song to playlist
+        journal_model.add_article_to_journal(article)
+
+        app.logger.info(f"Article added to journal: {author} - {title} ({publishedAt})")
+        return make_response(jsonify({'status': 'success', 'message': 'Article added to journal'}), 200)
+
+    except Exception as e:
+        app.logger.error(f"Error adding article to journal: {e}")
+        return make_response(jsonify({'error': str(e)}), 500)
 
 ####################################################
 #
@@ -341,7 +387,7 @@ def clear_catalog() -> Response:
     """
     try:
         app.logger.info('Clearing all articles...')
-        Article.clear_catalog()
+        article_model.clear_catalog()
         app.logger.info('Catalog cleared.')
         return make_response(jsonify({'status': 'success'}), 200)
     except Exception as e:
@@ -360,7 +406,7 @@ def delete_article(article_id: int) -> Response:
     """
     try:
         app.logger.info(f'Deleting article with ID {article_id}')
-        Article.delete_article(article_id)
+        article_model.delete_article(article_id)
         app.logger.info('Article deleted.')
         return make_response(jsonify({'status': 'success'}), 200)
     except Exception as e:
@@ -398,7 +444,7 @@ def delete_article_by_num_from_journal(article_num: int) -> Response:
     """
     try:
         app.logger.info(f'Deleting article with number {article_num}')
-        JournalModel.remove_article_by_article_id(article_num)
+        JournalModel.remove_article_by_article_number(article_num)
         app.logger.info('Article deleted.')
         return make_response(jsonify({'status': 'success'}), 200)
     except Exception as e:

@@ -49,109 +49,62 @@ check_db() {
 
 ##########################################################
 #
-# Song Management
+# Article Management
 #
 ##########################################################
 
 clear_catalog() {
-  echo "Clearing the playlist..."
+  echo "Clearing the journal..."
   curl -s -X DELETE "$BASE_URL/clear-catalog" | grep -q '"status": "success"'
 }
 
-create_song() {
-  artist=$1
-  title=$2
-  year=$3
-  genre=$4
-  duration=$5
+create_article() {
+  id=$1
+  name=$2
+  author=$3
+  title=$4
+  url=$5
+  content=$6
+  publishedAt=$7
 
-  echo "Adding song ($artist - $title, $year) to the playlist..."
-  curl -s -X POST "$BASE_URL/create-song" -H "Content-Type: application/json" \
-    -d "{\"artist\":\"$artist\", \"title\":\"$title\", \"year\":$year, \"genre\":\"$genre\", \"duration\":$duration}" | grep -q '"status": "success"'
+  echo "Adding article ($author - $title, $publishedAt) to the journal..."
+  curl -s -X POST "$BASE_URL/create-article" -H "Content-Type: application/json" \
+    -d "{\"id\":\"$id\", \"name\":\"$name\", \"author\":$author, \"title\":\"$title\", \"url\":\"$url\", \"content\":\"$content\", \"publishedAt\":$publishedAt}" | grep -q '"status": "success"'
 
   if [ $? -eq 0 ]; then
-    echo "Song added successfully."
+    echo "Article added successfully."
   else
-    echo "Failed to add song."
+    echo "Failed to add article."
     exit 1
   fi
 }
 
-delete_song_by_id() {
-  song_id=$1
+delete_article_by_id() {
+  article_id=$1
 
-  echo "Deleting song by ID ($song_id)..."
-  response=$(curl -s -X DELETE "$BASE_URL/delete-song/$song_id")
+  echo "Deleting article by ID ($article_id)..."
+  response=$(curl -s -X DELETE "$BASE_URL/delete-article/$article_id")
   if echo "$response" | grep -q '"status": "success"'; then
-    echo "Song deleted successfully by ID ($song_id)."
+    echo "Article deleted successfully by ID ($article_id)."
   else
-    echo "Failed to delete song by ID ($song_id)."
+    echo "Failed to delete article by ID ($article_id)."
     exit 1
   fi
 }
 
-get_all_songs() {
-  echo "Getting all songs in the playlist..."
-  response=$(curl -s -X GET "$BASE_URL/get-all-songs-from-catalog")
+get_article_by_id() {
+  article_id=$1
+
+  echo "Getting article by ID ($article_id)..."
+  response=$(curl -s -X GET "$BASE_URL/get-article-by-id/$article_id")
   if echo "$response" | grep -q '"status": "success"'; then
-    echo "All songs retrieved successfully."
+    echo "Article retrieved successfully by ID ($article_id)."
     if [ "$ECHO_JSON" = true ]; then
-      echo "Songs JSON:"
+      echo "Article JSON (ID $article_id):"
       echo "$response" | jq .
     fi
   else
-    echo "Failed to get songs."
-    exit 1
-  fi
-}
-
-get_song_by_id() {
-  song_id=$1
-
-  echo "Getting song by ID ($song_id)..."
-  response=$(curl -s -X GET "$BASE_URL/get-song-from-catalog-by-id/$song_id")
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "Song retrieved successfully by ID ($song_id)."
-    if [ "$ECHO_JSON" = true ]; then
-      echo "Song JSON (ID $song_id):"
-      echo "$response" | jq .
-    fi
-  else
-    echo "Failed to get song by ID ($song_id)."
-    exit 1
-  fi
-}
-
-get_song_by_compound_key() {
-  artist=$1
-  title=$2
-  year=$3
-
-  echo "Getting song by compound key (Artist: '$artist', Title: '$title', Year: $year)..."
-  response=$(curl -s -X GET "$BASE_URL/get-song-from-catalog-by-compound-key?artist=$(echo $artist | sed 's/ /%20/g')&title=$(echo $title | sed 's/ /%20/g')&year=$year")
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "Song retrieved successfully by compound key."
-    if [ "$ECHO_JSON" = true ]; then
-      echo "Song JSON (by compound key):"
-      echo "$response" | jq .
-    fi
-  else
-    echo "Failed to get song by compound key."
-    exit 1
-  fi
-}
-
-get_random_song() {
-  echo "Getting a random song from the catalog..."
-  response=$(curl -s -X GET "$BASE_URL/get-random-song")
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "Random song retrieved successfully."
-    if [ "$ECHO_JSON" = true ]; then
-      echo "Random Song JSON:"
-      echo "$response" | jq .
-    fi
-  else
-    echo "Failed to get a random song."
+    echo "Failed to get article by ID ($article_id)."
     exit 1
   fi
 }
@@ -159,76 +112,84 @@ get_random_song() {
 
 ############################################################
 #
-# Playlist Management
+# Journal Management
 #
 ############################################################
 
-add_song_to_playlist() {
-  artist=$1
-  title=$2
-  year=$3
+add_article_to_journal() {
+  id=$1
+  name=$2
+  author=$3
+  title=$4
+  url=$5
+  content=$6
+  publishedAt=$7
 
-  echo "Adding song to playlist: $artist - $title ($year)..."
-  response=$(curl -s -X POST "$BASE_URL/add-song-to-playlist" \
+  echo "Adding article to journal: $author - $title ($publishAt)..."
+  response=$(curl -s -X POST "$BASE_URL/add-article-to-journal" \
     -H "Content-Type: application/json" \
-    -d "{\"artist\":\"$artist\", \"title\":\"$title\", \"year\":$year}")
+    -d "{\"id\":\"$id\", \"name\":\"$name\", \"author\":$author, \"title\":\"$title\", \"url\":\"$url\", \"content\":\"$content\", \"publishedAt\":$publishedAt}" | grep -q '"status": "success"'
 
   if echo "$response" | grep -q '"status": "success"'; then
-    echo "Song added to playlist successfully."
+    echo "Article added to journal successfully."
     if [ "$ECHO_JSON" = true ]; then
-      echo "Song JSON:"
+      echo "Article JSON:"
       echo "$response" | jq .
     fi
   else
-    echo "Failed to add song to playlist."
+    echo "Failed to add article to journal."
     exit 1
   fi
 }
 
-remove_song_from_playlist() {
-  artist=$1
-  title=$2
-  year=$3
+remove_article_from_journal() {
+  id=$1
+  name=$2
+  author=$3
+  title=$4
+  url=$5
+  content=$6
+  publishedAt=$7
 
-  echo "Removing song from playlist: $artist - $title ($year)..."
-  response=$(curl -s -X DELETE "$BASE_URL/remove-song-from-playlist" \
+  echo "Removing article from journal: $author - $title ($publishAt)..."
+  response=$(curl -s -X DELETE "$BASE_URL/remove-article-from-journal" \
     -H "Content-Type: application/json" \
-    -d "{\"artist\":\"$artist\", \"title\":\"$title\", \"year\":$year}")
+    -d "{\"id\":\"$id\", \"name\":\"$name\", \"author\":$author, \"title\":\"$title\", \"url\":\"$url\", \"content\":\"$content\", \"publishedAt\":$publishedAt}" | grep -q '"status": "success"'
 
   if echo "$response" | grep -q '"status": "success"'; then
-    echo "Song removed from playlist successfully."
+    echo "Article removed from journal successfully."
     if [ "$ECHO_JSON" = true ]; then
-      echo "Song JSON:"
+      echo "Article JSON:"
       echo "$response" | jq .
     fi
   else
-    echo "Failed to remove song from playlist."
+    echo "Failed to remove article from journal."
     exit 1
   fi
 }
 
-remove_song_by_track_number() {
-  track_number=$1
+remove_article_by_article_number() {
+  article_number=$1
 
-  echo "Removing song by track number: $track_number..."
-  response=$(curl -s -X DELETE "$BASE_URL/remove-song-from-playlist-by-track-number/$track_number")
+  echo "Removing article by article number: $article_number..."
+  response=$(curl -s -X DELETE "$BASE_URL/remove-article-from-journal-by-article-number/$article_number")
 
   if echo "$response" | grep -q '"status":'; then
-    echo "Song removed from playlist by track number ($track_number) successfully."
+    echo "Article removed from journal by article number ($article_number) successfully."
   else
-    echo "Failed to remove song from playlist by track number."
+    echo "Failed to remove article from journal by article number."
     exit 1
   fi
 }
 
-clear_playlist() {
-  echo "Clearing playlist..."
-  response=$(curl -s -X POST "$BASE_URL/clear-playlist")
+clear_journal() {
+  echo "Clearing journal..."
+  response=$(curl -s -X POST "$BASE_URL/clear-journal")
 
   if echo "$response" | grep -q '"status": "success"'; then
-    echo "Playlist cleared successfully."
+    echo "Journal cleared successfully."
   else
-    echo "Failed to clear playlist."
+    echo "Failed to clear journal."
     exit 1
   fi
 }
@@ -236,235 +197,88 @@ clear_playlist() {
 
 ############################################################
 #
-# Play Playlist
+# Read Journal
 #
 ############################################################
 
-play_current_song() {
-  echo "Playing current song..."
-  response=$(curl -s -X POST "$BASE_URL/play-current-song")
+read_current_article() {
+  echo "Reading current article..."
+  response=$(curl -s -X POST "$BASE_URL/read-current-article")
 
   if echo "$response" | grep -q '"status": "success"'; then
-    echo "Current song is now playing."
+    echo "Current article is now reading."
   else
-    echo "Failed to play current song."
+    echo "Failed to read current article."
     exit 1
   fi
 }
 
-rewind_playlist() {
-  echo "Rewinding playlist..."
-  response=$(curl -s -X POST "$BASE_URL/rewind-playlist")
+get_article_from_journal_by_article_number() {
+  article_number=$1
+  echo "Retrieving article by article number ($article_number)..."
+  response=$(curl -s -X GET "$BASE_URL/get-article-from-journal-by-article-number/$article_number")
 
   if echo "$response" | grep -q '"status": "success"'; then
-    echo "Playlist rewound successfully."
-  else
-    echo "Failed to rewind playlist."
-    exit 1
-  fi
-}
-
-get_all_songs_from_playlist() {
-  echo "Retrieving all songs from playlist..."
-  response=$(curl -s -X GET "$BASE_URL/get-all-songs-from-playlist")
-
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "All songs retrieved successfully."
+    echo "Article retrieved successfully by article number."
     if [ "$ECHO_JSON" = true ]; then
-      echo "Songs JSON:"
+      echo "Article JSON:"
       echo "$response" | jq .
     fi
   else
-    echo "Failed to retrieve all songs from playlist."
+    echo "Failed to retrieve article by article number."
     exit 1
   fi
 }
 
-get_song_from_playlist_by_track_number() {
-  track_number=$1
-  echo "Retrieving song by track number ($track_number)..."
-  response=$(curl -s -X GET "$BASE_URL/get-song-from-playlist-by-track-number/$track_number")
+get_current_article() {
+  echo "Retrieving current article..."
+  response=$(curl -s -X GET "$BASE_URL/get-current-article")
 
   if echo "$response" | grep -q '"status": "success"'; then
-    echo "Song retrieved successfully by track number."
+    echo "Current article retrieved successfully."
     if [ "$ECHO_JSON" = true ]; then
-      echo "Song JSON:"
+      echo "Current Article JSON:"
       echo "$response" | jq .
     fi
   else
-    echo "Failed to retrieve song by track number."
+    echo "Failed to retrieve current article."
     exit 1
   fi
 }
 
-get_current_song() {
-  echo "Retrieving current song..."
-  response=$(curl -s -X GET "$BASE_URL/get-current-song")
-
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "Current song retrieved successfully."
-    if [ "$ECHO_JSON" = true ]; then
-      echo "Current Song JSON:"
-      echo "$response" | jq .
-    fi
-  else
-    echo "Failed to retrieve current song."
-    exit 1
-  fi
-}
-
-get_playlist_length_duration() {
-  echo "Retrieving playlist length and duration..."
-  response=$(curl -s -X GET "$BASE_URL/get-playlist-length-duration")
-
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "Playlist length and duration retrieved successfully."
-    if [ "$ECHO_JSON" = true ]; then
-      echo "Playlist Info JSON:"
-      echo "$response" | jq .
-    fi
-  else
-    echo "Failed to retrieve playlist length and duration."
-    exit 1
-  fi
-}
-
-go_to_track_number() {
-  track_number=$1
-  echo "Going to track number ($track_number)..."
-  response=$(curl -s -X POST "$BASE_URL/go-to-track-number/$track_number")
-
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "Moved to track number ($track_number) successfully."
-  else
-    echo "Failed to move to track number ($track_number)."
-    exit 1
-  fi
-}
-
-play_entire_playlist() {
-  echo "Playing entire playlist..."
-  curl -s -X POST "$BASE_URL/play-entire-playlist" | grep -q '"status": "success"'
+read_entire_journal() {
+  echo "Reading entire journal..."
+  curl -s -X POST "$BASE_URL/read-entire-journal" | grep -q '"status": "success"'
   if [ $? -eq 0 ]; then
-    echo "Entire playlist played successfully."
+    echo "Entire journal readed successfully."
   else
-    echo "Failed to play entire playlist."
-    exit 1
-  fi
-}
-
-# Function to play the rest of the playlist
-play_rest_of_playlist() {
-  echo "Playing rest of the playlist..."
-  curl -s -X POST "$BASE_URL/play-rest-of-playlist" | grep -q '"status": "success"'
-  if [ $? -eq 0 ]; then
-    echo "Rest of playlist played successfully."
-  else
-    echo "Failed to play rest of playlist."
+    echo "Failed to read entire journal."
     exit 1
   fi
 }
 
 ############################################################
 #
-# Arrange Playlist
+# Arrange Journal
 #
 ############################################################
 
-move_song_to_beginning() {
-  artist=$1
-  title=$2
-  year=$3
+swap_articles_in_journal() {
+  article_number1=$1
+  article_number2=$2
 
-  echo "Moving song ($artist - $title, $year) to the beginning of the playlist..."
-  response=$(curl -s -X POST "$BASE_URL/move-song-to-beginning" \
+  echo "Swapping articles at article numbers ($article_number1) and ($article_number2)..."
+  response=$(curl -s -X POST "$BASE_URL/swap-articles-in-journal" \
     -H "Content-Type: application/json" \
-    -d "{\"artist\": \"$artist\", \"title\": \"$title\", \"year\": $year}")
+    -d "{\"article_number_1\": $article_number1, \"article_number_2\": $article_number2}")
 
   if echo "$response" | grep -q '"status": "success"'; then
-    echo "Song moved to the beginning successfully."
+    echo "Articles swapped successfully between article numbers ($article_number1) and ($article_number2)."
   else
-    echo "Failed to move song to the beginning."
+    echo "Failed to swap articles."
     exit 1
   fi
 }
-
-move_song_to_end() {
-  artist=$1
-  title=$2
-  year=$3
-
-  echo "Moving song ($artist - $title, $year) to the end of the playlist..."
-  response=$(curl -s -X POST "$BASE_URL/move-song-to-end" \
-    -H "Content-Type: application/json" \
-    -d "{\"artist\": \"$artist\", \"title\": \"$title\", \"year\": $year}")
-
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "Song moved to the end successfully."
-  else
-    echo "Failed to move song to the end."
-    exit 1
-  fi
-}
-
-move_song_to_track_number() {
-  artist=$1
-  title=$2
-  year=$3
-  track_number=$4
-
-  echo "Moving song ($artist - $title, $year) to track number ($track_number)..."
-  response=$(curl -s -X POST "$BASE_URL/move-song-to-track-number" \
-    -H "Content-Type: application/json" \
-    -d "{\"artist\": \"$artist\", \"title\": \"$title\", \"year\": $year, \"track_number\": $track_number}")
-
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "Song moved to track number ($track_number) successfully."
-  else
-    echo "Failed to move song to track number ($track_number)."
-    exit 1
-  fi
-}
-
-swap_songs_in_playlist() {
-  track_number1=$1
-  track_number2=$2
-
-  echo "Swapping songs at track numbers ($track_number1) and ($track_number2)..."
-  response=$(curl -s -X POST "$BASE_URL/swap-songs-in-playlist" \
-    -H "Content-Type: application/json" \
-    -d "{\"track_number_1\": $track_number1, \"track_number_2\": $track_number2}")
-
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "Songs swapped successfully between track numbers ($track_number1) and ($track_number2)."
-  else
-    echo "Failed to swap songs."
-    exit 1
-  fi
-}
-
-######################################################
-#
-# Leaderboard
-#
-######################################################
-
-# Function to get the song leaderboard sorted by play count
-get_song_leaderboard() {
-  echo "Getting song leaderboard sorted by play count..."
-  response=$(curl -s -X GET "$BASE_URL/song-leaderboard?sort=play_count")
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "Song leaderboard retrieved successfully."
-    if [ "$ECHO_JSON" = true ]; then
-      echo "Leaderboard JSON (sorted by play count):"
-      echo "$response" | jq .
-    fi
-  else
-    echo "Failed to get song leaderboard."
-    exit 1
-  fi
-}
-
 
 # Health checks
 check_health
@@ -473,52 +287,52 @@ check_db
 # Clear the catalog
 clear_catalog
 
-# Create songs
-create_song "The Beatles" "Hey Jude" 1968 "Rock" 180
-create_song "The Rolling Stones" "Paint It Black" 1966 "Rock" 180
-create_song "The Beatles" "Let It Be" 1970 "Rock" 180
-create_song "Queen" "Bohemian Rhapsody" 1975 "Rock" 180
-create_song "Led Zeppelin" "Stairway to Heaven" 1971 "Rock" 180
+# Create articles
+create_article "The Beatles" "Hey Jude" 1968 "Rock" 180
+create_article "The Rolling Stones" "Paint It Black" 1966 "Rock" 180
+create_article "The Beatles" "Let It Be" 1970 "Rock" 180
+create_article "Queen" "Bohemian Rhapsody" 1975 "Rock" 180
+create_article "Led Zeppelin" "Stairway to Heaven" 1971 "Rock" 180
 
-delete_song_by_id 1
-get_all_songs
+delete_article_by_id 1
+get_all_articles
 
-get_song_by_id 2
-get_song_by_compound_key "The Beatles" "Let It Be" 1970
-get_random_song
+get_article_by_id 2
+get_article_by_compound_key "The Beatles" "Let It Be" 1970
+get_random_article
 
-clear_playlist
+clear_journal
 
-add_song_to_playlist "The Rolling Stones" "Paint It Black" 1966
-add_song_to_playlist "Queen" "Bohemian Rhapsody" 1975
-add_song_to_playlist "Led Zeppelin" "Stairway to Heaven" 1971
-add_song_to_playlist "The Beatles" "Let It Be" 1970
+add_article_to_journal "The Rolling Stones" "Paint It Black" 1966
+add_article_to_journal "Queen" "Bohemian Rhapsody" 1975
+add_article_to_journal "Led Zeppelin" "Stairway to Heaven" 1971
+add_article_to_journal "The Beatles" "Let It Be" 1970
 
-remove_song_from_playlist "The Beatles" "Let It Be" 1970
-remove_song_by_track_number 2
+remove_article_from_journal "The Beatles" "Let It Be" 1970
+remove_article_by_article_number 2
 
-get_all_songs_from_playlist
+get_all_articles_from_journal
 
-add_song_to_playlist "Queen" "Bohemian Rhapsody" 1975
-add_song_to_playlist "The Beatles" "Let It Be" 1970
+add_article_to_journal "Queen" "Bohemian Rhapsody" 1975
+add_article_to_journal "The Beatles" "Let It Be" 1970
 
-move_song_to_beginning "The Beatles" "Let It Be" 1970
-move_song_to_end "Queen" "Bohemian Rhapsody" 1975
-move_song_to_track_number "Led Zeppelin" "Stairway to Heaven" 1971 2
-swap_songs_in_playlist 1 2
+move_article_to_beginning "The Beatles" "Let It Be" 1970
+move_article_to_end "Queen" "Bohemian Rhapsody" 1975
+move_article_to_article_number "Led Zeppelin" "Stairway to Heaven" 1971 2
+swap_articles_in_journal 1 2
 
-get_all_songs_from_playlist
-get_song_from_playlist_by_track_number 1
+get_all_articles_from_journal
+get_article_from_journal_by_article_number 1
 
-get_playlist_length_duration
+get_journal_length_duration
 
-play_current_song
-rewind_playlist
+read_current_article
+rewind_journal
 
-play_entire_playlist
-play_current_song
-play_rest_of_playlist
+read_entire_journal
+read_current_article
+read_rest_of_journal
 
-get_song_leaderboard
+get_article_leaderboard
 
 echo "All tests passed successfully!"
