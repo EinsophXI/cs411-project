@@ -2,11 +2,14 @@ from dataclasses import dataclass
 import logging
 import os
 import sqlite3
+import requests
+import json
+from unittest.mock import patch, MagicMock
 
+from news_recommender.utils.article_utils import get_articles_info
 from news_recommender.utils.logger import configure_logger
 #from news_recommender.utils.article_utils import get_article
 from news_recommender.utils.sql_utils import get_db_connection
-
 
 logger = logging.getLogger(__name__)
 configure_logger(logger)
@@ -367,3 +370,48 @@ def add_note_to_content(article_id: int, text_to_add: str):
     
     except sqlite3.Error as e:
         print(f"Database error: {str(e)}")
+def download_article(article_name: str) -> None:
+
+    
+    data = get_articles_info(article_name, 10)
+
+    print(data)
+    # Extract the first article
+    try:
+    # Convert `data` to a dictionary if it's in JSON format
+        if isinstance(data, str):
+            article = json.loads(data)  # Convert JSON string to a dictionary
+        else:
+            article = data  # Assume it's already a dictionary
+        name = article_name
+        author = article.get('author', 'Unknown Author')
+        title = article.get('title', 'No Title')
+        content = article.get('content', 'No Content')
+        url = article.get('url', 'No URL')
+        published_at = article.get('publishedAt', 'No Date')
+
+        # Handle missing publication date
+        if published_at == 'No Date':
+            published_at = "1899-01-01"
+        article_id = hash(title + author + url)
+
+        # Add the article to the database
+        logger.info("Adding article to database: %s", title)
+        create_article(
+            id=article_id,
+            name=article_name,
+            author=author,
+            title=title,
+            url=url,
+            content=content,
+            publishedAt=published_at
+        )
+        logger.info("Article added successfully: %s", title)
+    except json.JSONDecodeError as e:
+        logger.error("Failed to parse article data: %s", e)
+    except AttributeError as e:
+        logger.error("Unexpected data format: %s", e)
+    except Exception as e:
+        logger.error("An error occurred while processing the article: %s", e)
+
+

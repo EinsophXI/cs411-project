@@ -1,8 +1,23 @@
 from contextlib import contextmanager
 import re
 import sqlite3
-
+from unittest.mock import MagicMock, patch
 import pytest
+@pytest.fixture
+def mock_db_connection():
+    """Fixture that mocks the database connection and cursor."""
+    # Create a mock connection and cursor
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+
+    # Mock the connection's cursor method to return the mock cursor
+    mock_conn.cursor.return_value = mock_cursor
+
+    # Return the mock connection and cursor as a tuple
+    yield mock_conn, mock_cursor
+
+    # Clean up after the test
+    mock_conn.close()
 
 from news_recommender.models.article_model import (
     Article,
@@ -13,7 +28,8 @@ from news_recommender.models.article_model import (
     get_article_by_compound_key,
     get_all_articles,
     #get_random_song,
-    update_read_count
+    update_read_count,
+    download_article
 )
 
 ######################################################
@@ -429,3 +445,56 @@ def test_update_read_count_deleted_article(mock_cursor):
 
     # Ensure that no SQL query for updating play count was executed
     mock_cursor.execute.assert_called_once_with("SELECT deleted FROM articles WHERE id = ?", (1,))
+
+def test_download_article(mock_db_connection):
+    """Test downloading an article and saving it to the database."""
+    # Mock data returned by get_articles_info
+    mock_article_data = {
+        "author": "Paresh Dave",
+        "title": "The Future of Online Privacy Hinges on Thousands of New Jersey Cops",
+        "content": "LexisNexis spokesperson Paul Eckloff disputes that freezing was an overreach. The company deemed that step as necessary to honor the requests submitted by Atlas users to not disclose their data. This… [+2458 chars]",
+        "url": "https://www.wired.com/story/daniels-law-new-jersey-online-privacy-matt-adkisson-atlas-lawsuits/",
+        "publishedAt": "2024-11-25T11:00:00Z"
+    }
+
+    # Mock the get_articles_info function
+    with patch("news_recommender.models.article_model.get_articles_info", return_value=mock_article_data), \
+         patch("news_recommender.models.article_model.create_article") as mock_create_article, \
+         patch("news_recommender.models.article_model.get_article_by_id") as mock_get_article_by_id:
+        
+        # Call the function under test
+        download_article("Privacy Revolution")
+
+        # Verify create_article was called with correct arguments
+        expected_article_id = hash(
+            mock_article_data["title"] + mock_article_data["author"] + mock_article_data["url"]
+        )
+        mock_create_article.assert_called_once_with(
+            id=expected_article_id,
+            name="Privacy Revolution",
+            author=mock_article_data["author"],
+            title=mock_article_data["title"],
+            url=mock_article_data["url"],
+            content=mock_article_data["content"],
+            publishedAt=mock_article_data["publishedAt"]
+        )
+
+        # Simulate the database returning the created article
+        mock_get_article_by_id.return_value = Article(
+            id=expected_article_id,
+            name="Privacy Revolution",
+            author=mock_article_data["author"],
+            title=mock_article_data["title"],
+            url=mock_article_data["url"],
+            content=mock_article_data["content"],
+            publishedAt=mock_article_data["publishedAt"]
+        )
+
+        # Verify the article was stored correctly
+        stored_article = mock_get_article_by_id(expected_article_id)
+        assert stored_article.name == "Privacy Revolution"
+        assert stored_article.author == mock_article_data["author"]
+        assert stored_article.title == mock_article_data["title"]
+        assert stored_article.url == mock_article_data["url"]
+        assert stored_article.content == mock_article_data["content"]
+        assert stored_article.publishedAt == mock_article_data["publishedAt"]
