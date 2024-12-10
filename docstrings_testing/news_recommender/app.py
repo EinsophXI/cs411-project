@@ -161,6 +161,165 @@ def healthcheck() -> Response:
     app.logger.info('Health check')
     return make_response(jsonify({'status': 'healthy'}), 200)
 
+#####################################
+
+# Addition Routes
+
+#####################################
+
+@app.route('/project/create-article', methods=['POST'])
+def create_article() -> Response:
+    """
+    Route to add a new article.
+
+    Expected JSON Input:
+        - name (str): The name of the article.
+        - author (str): The author of the article.
+        - title (str): The title of the article. 
+        - url (str): The URL of the article.
+        - content (str): The contents of the article.
+        - publishedAt (str): Date that the article was published
+
+    Returns:
+        JSON response indicating the success of the combatant addition.
+    Raises:
+        400 error if input validation fails.
+        500 error if there is an issue adding the combatant to the database.
+    """
+    app.logger.info('Creating new article')
+    try:
+        # Get the JSON data from the request
+        data = request.get_json()
+
+        # Extract and validate required fields
+        name = data.get('name')
+        author = data.get('author')
+        title = data.get('title')
+        url = data.get('url')
+        content = data.get('content')
+        publishedAt = data.get('publishedAt')
+
+
+        if not name or not author or not title or not url or not content or not publishedAt:
+            return make_response(jsonify({'error': 'Invalid input, all fields are required with valid values'}), 400)
+
+        # Check that publishedAt is in date format and is in DD-MM-YYYY
+        try:
+            days = publishedAt[:2]
+            month = publishedAt[3:5]
+            year = publishedAt[6:]
+            if days < 1 or days > 31:
+                raise ValueError("Enter valid day")
+            if month < 1 or month > 12:
+                raise ValueError("Enter a valid month")
+            if year < 2025:
+                raise ValueError("Please enter a date in the past")
+        except ValueError as e:
+            return make_response(jsonify({'error': 'Please enter your date in correct format: DD-MM-YYYY'}), 400)
+
+        # Call the kitchen_model function to add the combatant to the database
+        app.logger.info('Adding article: %s, %s, %s, %s, %s, %s', name, author, title, url, content, publishedAt)
+        Article.create_article(name, author, title, url, content, publishedAt)
+
+        app.logger.info("Article added: %s", meal)
+        return make_response(jsonify({'status': 'success', 'article name': name}), 201)
+    except Exception as e:
+        app.logger.error("Failed to add article: %s", str(e))
+        return make_response(jsonify({'error': str(e)}), 500)
+
+
+####################################################
+#
+# Retrieval routes
+#
+####################################################
+
+@app.route('/project/get-article-by-id/<int:article_id>', methods=['GET'])
+def get_article_by_id(article_id: int) -> Response:
+    """
+    Route to get a article by its ID.
+
+    Returns:
+        JSON response with the articles in a list or error message.
+    """
+    try:
+        app.logger.info(f"Retrieving article with ID {article_id}...")
+
+        article = JournalModel.get_article_by_article_id(article_id)
+        return make_response(jsonify({'status': 'success', 'article': article}), 200)
+    except Exception as e:
+        app.logger.error(f"Error retrieving article: {e}")
+        return make_response(jsonify({'error': str(e)}), 500)
+    
+@app.route('/project/get-article-by-id/<int:article_num>', methods=['GET'])
+def get_article_by_num(article_num: int) -> Response:
+    """
+    Route to get a article by its number.
+
+    Returns:
+        JSON response with the articles in a list or error message.
+    """
+    try:
+        app.logger.info(f"Retrieving article with number {article_num}...")
+
+        article = JournalModel.get_article_by_article_number(article_num)
+        return make_response(jsonify({'status': 'success', 'article': article}), 200)
+    except Exception as e:
+        app.logger.error(f"Error retrieving article: {e}")
+        return make_response(jsonify({'error': str(e)}), 500)
+    
+@app.route('/project/get-current-article', methods=['GET'])
+def get_current_article() -> Response:
+    """
+    Route to get the current article.
+
+    Returns:
+        JSON response with the articles in a list or error message.
+    """
+    try:
+        app.logger.info(f"Retrieving current article...")
+
+        article = JournalModel.get_current_article()
+        return make_response(jsonify({'status': 'success', 'article': article}), 200)
+    except Exception as e:
+        app.logger.error(f"Error retrieving article: {e}")
+        return make_response(jsonify({'error': str(e)}), 500)
+    
+@app.route('/project/get-journal-length', methods=['GET'])
+def get_journal_length() -> Response:
+    """
+    Route to get the total journal length (number of articles).
+
+    Returns:
+        JSON response with the number of articles or error message.
+    """
+    try:
+        app.logger.info(f"Retrieving total journal length...")
+
+        length = JournalModel.get_journal_length()
+        return make_response(jsonify({'status': 'success', 'length': length}), 200)
+    except Exception as e:
+        app.logger.error(f"Error retrieving length: {e}")
+        return make_response(jsonify({'error': str(e)}), 500)
+    
+@app.route('/project/get-journal-duration', methods=['GET'])
+def get_journal_duration() -> Response:
+    """
+    Route to get the total journal duration (number of seconds).
+
+    Returns:
+        JSON response with the duration or error message.
+    """
+    try:
+        app.logger.info(f"Retrieving total journal duration...")
+
+        duration = JournalModel.get_journal_duration()
+        return make_response(jsonify({'status': 'success', 'duration': duration}), 200)
+    except Exception as e:
+        app.logger.error(f"Error retrieving length: {e}")
+        return make_response(jsonify({'error': str(e)}), 500)
+    
+
 ####################################################
 #
 # Deletion routes
@@ -223,7 +382,109 @@ def delete_article(article_id: int) -> Response:
     except Exception as e:
         app.logger.error("Failed to delete article: %s", str(e))
         return make_response(jsonify({'error': str(e)}), 500)
+    
+@app.route('/project/remove-article-from-journal_id/<int:article_id>', methods=['POST'])
+def delete_article_by_id_from_journal(article_id: int) -> Response:
+    """
+    Route to clear a specific article based on the ID.
 
+    Returns:
+        JSON response indicating success of the operation.
+    Raises:
+        500 error if there is an issue clearing combatants.
+    """
+    try:
+        app.logger.info(f'Deleting article with ID {article_id}')
+        JournalModel.remove_article_by_article_id(article_id)
+        app.logger.info('Article deleted.')
+        return make_response(jsonify({'status': 'success'}), 200)
+    except Exception as e:
+        app.logger.error("Failed to delete article: %s", str(e))
+        return make_response(jsonify({'error': str(e)}), 500)
+
+@app.route('/project/remove-article-from-journal_num/<int:article_num>', methods=['POST'])
+def delete_article_by_num_from_journal(article_num: int) -> Response:
+    """
+    Route to clear a specific article based on the ID.
+
+    Returns:
+        JSON response indicating success of the operation.
+    Raises:
+        500 error if there is an issue clearing combatants.
+    """
+    try:
+        app.logger.info(f'Deleting article with number {article_num}')
+        JournalModel.remove_article_by_article_id(article_num)
+        app.logger.info('Article deleted.')
+        return make_response(jsonify({'status': 'success'}), 200)
+    except Exception as e:
+        app.logger.error("Failed to delete article: %s", str(e))
+        return make_response(jsonify({'error': str(e)}), 500)
+
+@app.route('/project/read-current-article', methods=['POST'])
+def read_current_article() -> Response:
+    """
+    Route to read the current article
+
+    Returns:
+        JSON response indicating success of the operation.
+    Raises:
+        500 error if there is an issue clearing combatants.
+    """
+    try:
+        app.logger.info(f'Reading current article...')
+        JournalModel.read_current_article()
+        app.logger.info('Article read.')
+        return make_response(jsonify({'status': 'success'}), 200)
+    except Exception as e:
+        app.logger.error("Failed to read article: %s", str(e))
+        return make_response(jsonify({'error': str(e)}), 500)
+    
+####################################################
+#
+# Journal routes
+#
+####################################################
+    
+@app.route('/project/swap-articles-in-journal', methods=['POST'])
+def swap_articles(article_id1: int, article_id2: int) -> Response:
+    """
+    Route to swap two articles in a journal.
+
+    Returns:
+        JSON response indicating success of the operation.
+    Raises:
+        500 error if there is an issue clearing combatants.
+    """
+    try:
+        app.logger.info(f'Swapping article with ID {article_id1} with another article with ID {article_id2}')
+        JournalModel.swap_articles_in_journal(article_id1, article_id2)
+        app.logger.info('Articles swapped.')
+        return make_response(jsonify({'status': 'success'}), 200)
+    except Exception as e:
+        app.logger.error("Failed to swap articles: %s", str(e))
+        return make_response(jsonify({'error': str(e)}), 500)
+
+
+@app.route('/project/read-entire-journal', methods=['POST'])
+def read_entire_journal() -> Response:
+    """
+    Route to read entire journal.
+
+    Returns:
+        JSON response indicating success of the operation.
+    Raises:
+        500 error if there is an issue clearing combatants.
+    """
+    try:
+        app.logger.info(f'Reading all articles in journal...')
+        JournalModel.read_entire_journal()
+        app.logger.info('Article read.')
+        return make_response(jsonify({'status': 'success'}), 200)
+    except Exception as e:
+        app.logger.error("Failed to read article: %s", str(e))
+        return make_response(jsonify({'error': str(e)}), 500)
+    
 
 if __name__ == '__main__':
     create_tables()
