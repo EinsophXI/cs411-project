@@ -102,6 +102,7 @@ Route: /create-article
     ● Request Type: POST
     ● Purpose: User creates an article using request criteria
     ● Request Body:
+        ○ id (int): ID of article,
         ○ name (String): Name of article,
         ○ author (String): Author of article,
         ○ title (String): Title of article,

@@ -152,12 +152,6 @@ class JournalModel:
         """
         return len(self.journal)
 
-    def get_journal_duration(self) -> int:
-        """
-        Returns the total duration of the journal in seconds.
-        """
-        return sum(article.duration for article in self.journal)
-
     ##################################################
     # Journal Movement Functions
     ##################################################

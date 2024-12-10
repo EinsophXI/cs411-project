@@ -173,6 +173,7 @@ def create_article() -> Response:
     Route to add a new article.
 
     Expected JSON Input:
+        - id (int): The ID of the article,
         - name (str): The name of the article.
         - author (str): The author of the article.
         - title (str): The title of the article. 
@@ -221,7 +222,7 @@ def create_article() -> Response:
         app.logger.info('Adding article: %s, %s, %s, %s, %s, %s', name, author, title, url, content, publishedAt)
         Article.create_article(name, author, title, url, content, publishedAt)
 
-        app.logger.info("Article added: %s", meal)
+        app.logger.info("Article added: %s", name)
         return make_response(jsonify({'status': 'success', 'article name': name}), 201)
     except Exception as e:
         app.logger.error("Failed to add article: %s", str(e))
