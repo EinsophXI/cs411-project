@@ -71,163 +71,193 @@ Route: /update-password
         "status": "2
         }
 
-Route: /get-unique-article
-    ● Request Type: GET
-    ● Purpose: User reads a unique article, and this history is recorded in the system.
-    ● Request Body:
-        ○ title (String): Title of article read,
-        ○ author (String): Author of article,
-        ○ date (String): Date article was written,
-        ○ title (String): Title of article read,
-    ● Response Format: JSON
-        ○ Success Response Example:
-            ■ Code: 200
-            ■ Content: { "message": "Article read" }
-    ● Example Request:
-        {
-        "title": "Why the George Sherman Union needs new food options",
-        "author": "BU Today"
-        "date_published": 12-05-2024
-        }
-    ● Example Response:
-        {
-        "message": "Article read successfully",
-        "status": "2
-        }
-
-Route: /get-articles-by-author
-    ● Request Type: GET
-    ● Purpose: User searches for articles based on the author.
-    ● Request Body:
-        ○ author (String): Author of article,
-        ○ size (int): Number of articles to retrieve,
-        ○ sort_most_recent (boolean): Boolean if user wants most recent articles or randomized,
-    ● Response Format: JSON
-        ○ Success Response Example:
-            ■ Code: 200
-            ■ Content: { "message": Articles retrieved successfully,
-                            "Articles": [{ "Title 1", "Title 2", "Title 3" }]}
-    ● Example Request:
-        {
-        "author": "BU Today",
-        "size": 2,
-        "sort_most_recent": True
-        }
-    ● Example Response:
-        {
-        "message": "Articles retrieved successfully",
-        "Articles": "Basho is severely overrated. Here's why.", "Halal Shack under investigation for food poisoning"
-        "status": 2
-        }
-
-Route: /get-articles-written-on-date
-    ● Request Type: GET
-    ● Purpose: User searches for articles written on a date.
-    ● Request Body:
-        ○ datePublished (String):  Date of article publication,
-        ○ size (int):  Number of articles to retrieve
-    ● Response Format: JSON
-        ○ Success Response Example:
-            ■ Code: 200
-            ■ Content: { "message": Articles retrieved successfully,
-                            "Articles": [{ "Title 1", "Title 2", "Title 3" }]}
-    ● Example Request:
-        {
-        "author": "BU Today",
-        "size": 2,
-        "sort_most_recent": True
-        }
-    ● Example Response:
-        {
-        "message": "Articles retrieved successfully",
-        "Articles": "Halal Shack reportedly adds food coloring and additive chemicals to its bowls.", "Halal Shack under investigation for food poisoning"
-        "status": 2
-        }
-
-Route: /favorite-article
-    ● Request Type: GET
-    ● Purpose: User retrieves favorite, or most viewed/read, article.
-    ● Request Body:
-    ● Response Format: JSON
-        ○ Success Response Example:
-            ■ Code: 200
-            ■ Content: { "message": Article retrieved successfully,
-                            "Article": "Title 1"}
-    ● Example Request:
-        {
-        }
-    ● Example Response:
-        {
-        "message": "Article retrieved successfully",
-        "Article": "Halal Shack under investigation for food poisoning"
-        "status": 2
-        }
-
-Route: /favorite-author
-    ● Request Type: GET
-    ● Purpose: User retrieves favorite, or most viewed/read, author.
-    ● Request Body:
-    ● Response Format: JSON
-        ○ Success Response Example:
-            ■ Code: 200
-            ■ Content: { "message": Author retrieved successfully,
-                            "Author": "Name 1"}
-    ● Example Request:
-        {
-        }
-    ● Example Response:
-        {
-        "message": "Author retrieved successfully",
-        "Author": "BU Today"
-        "status": 2
-        }
-
-Route: /save-article
+Route: /read-current-article
     ● Request Type: POST
-    ● Purpose: User saves an article.
-    ● Request Body:
-        {
-            "title": Title of article,
-            "author": Author of article,
-            }
+    ● Purpose: User reads the current article, and this history is recorded in the system.
     ● Response Format: JSON
         ○ Success Response Example:
             ■ Code: 200
-            ■ Content: { "message": Article retrieved successfully
-                                }   
+            ■ Content: { "status": "success"}
     ● Example Request:
-        {
-            "title": "Halal Shack under investigation for food poisoning",
-            "author": "BU Today"
-        }
     ● Example Response:
         {
-        "message": "Article saved successfully",
-        "status": 2
+        "status": "success"
         }
 
-Route: /delete-article-from-saved
-    ● Request Type: DELETE
-    ● Purpose: User saves an article.
-    ● Request Body:
-        {
-            "title": Title of article,
-            "author": Author of article,
-            }
+Route: /read-entire-journal 
+    ● Request Type: POST
+    ● Purpose: User reads the entire journal, and this history is recorded in the system.
     ● Response Format: JSON
         ○ Success Response Example:
             ■ Code: 200
-            ■ Content: { "message": Article deleted successfully
-                                }   
+            ■ Content: { "status": "success"}
+    ● Example Request:
+    ● Example Response:
+        {
+        "status": "success"
+        }
+
+
+Route: /create-article
+    ● Request Type: POST
+    ● Purpose: User creates an article using request criteria
+    ● Request Body:
+        ○ name (String): Name of article,
+        ○ author (String): Author of article,
+        ○ title (String): Title of article,
+        ○ url (String): URL of article,
+        ○ content (String): Content of article,
+        ○ publishedAt (String): Date article was published.
+    ● Response Format: JSON
+        ○ Success Response Example:
+            ■ Code: 200
+            ■ Content: { "message": Articles retrieved successfully,
+                            "Article Name": article_name}
     ● Example Request:
         {
-            "title": "Halal Shack under investigation for food poisoning",
-            "author": "BU Today"
+        "name": "Basho is severely overrated. Here's why."
+        "author": "BU Today",
+        "title": "Basho is severely overrated. Here's why."
+        "url": www.linkedin.com
+        "content": Lorem Ipsum
+        "publishedAt": "22-11-2023"
         }
     ● Example Response:
         {
-        "message": "Article deleted successfully",
-        "status": 2
+        "message": "Articles retrieved successfully",
+        "Article Name": "Basho is severely overrated. Here's why."
+        }
+
+Route: /get-article-by-id
+    ● Request Type: GET
+    ● Purpose: User searches for articles based on the article ID.
+    ● Request Body:
+        ○ article id (int): ID of article
+    ● Response Format: JSON
+        ○ Success Response Example:
+            ■ Code: 200
+            ■ Content: { "status": success,
+                            "article name": "Name 1"}
+    ● Example Request:
+        {
+        "article id": 5
+        }
+    ● Example Response:
+        {
+        "status": "success",
+        "article name": "Halal Shack under investigation for food poisoning"
+        }
+
+Route: /get-current-article
+    ● Request Type: GET
+    ● Purpose: User retrieves current article in journal
+    ● Request Body:
+    ● Response Format: JSON
+        ○ Success Response Example:
+            ■ Code: 200
+            ■ Content: { "status": success,
+                            "article name": "Name 1",
+                            "article ID": "id 1",
+                            "author": "author 1"}
+    ● Example Request:
+    ● Example Response:
+        {
+        "status": "success",
+        "article name": "Halal Shack under investigation for food poisoning",
+        "article ID": 55,
+        "author": Martin Luther King Jr.
+        }
+
+Route: /get-journal-stats
+    ● Request Type: GET
+    ● Purpose: User retrieves journal statistics
+    ● Request Body:
+    ● Response Format: JSON
+        ○ Success Response Example:
+            ■ Code: 200
+            ■ Content: { "status": success,
+                            "length": "length 1",
+                            "duration": "duration 2"}
+    ● Example Request:
+    ● Example Response:
+        {
+        "status": "success",
+        "length": 20,
+        "duration": 3751
+        }
+
+Route: /swap-articles
+    ● Request Type: POST
+    ● Purpose: User swaps two articles in a journal
+    ● Request Body:
+        ○ article_id1 (int): ID of article 1
+        ○ article_id2 (int): ID of article 2
+    ● Response Format: JSON
+        ○ Success Response Example:
+            ■ Code: 200
+            ■ Content: { "status": success"}
+    ● Example Request:
+         {
+            "article id1": 2,
+            "article_id2": 355
+        }
+    ● Example Response:
+        {
+        "status": "success",
+        }
+
+Route: /delete-article
+    ● Request Type: POST
+    ● Purpose: User performs a soft delete on an article
+    ● Request Body:
+        ○ article_id (int): ID of article 
+    ● Response Format: JSON
+        ○ Success Response Example:
+            ■ Code: 200
+            ■ Content: { "status": success"}
+    ● Example Request:
+         {
+            "article_id": 25
+        }
+    ● Example Response:
+        {
+        "status": "success",
+        }
+
+Route: /remove-article-from-journal_id/<int:article_id>
+    ● Request Type: POST
+    ● Purpose: User deletes an article from the journal using article ID
+    ● Request Body:
+        ○ article_id (int): ID of article 
+    ● Response Format: JSON
+        ○ Success Response Example:
+            ■ Code: 200
+            ■ Content: { "status": success"}
+    ● Example Request:
+         {
+            "article_id": 25
+        }
+    ● Example Response:
+        {
+        "status": "success",
+        }
+
+Route: /remove-article-from-journal_num/<int:article_num>
+    ● Request Type: POST
+    ● Purpose: User deletes an article from the journal using article number
+    ● Request Body:
+        ○ article_id (int): ID of article 
+    ● Response Format: JSON
+        ○ Success Response Example:
+            ■ Code: 200
+            ■ Content: { "status": success"}
+    ● Example Request:
+         {
+            "article_id": 25
+        }
+    ● Example Response:
+        {
+        "status": "success",
         }
 
 Route: /recommend-articles

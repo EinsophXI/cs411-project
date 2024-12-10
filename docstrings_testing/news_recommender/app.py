@@ -246,7 +246,7 @@ def get_article_by_id(article_id: int) -> Response:
         app.logger.info(f"Retrieving article with ID {article_id}...")
 
         article = JournalModel.get_article_by_article_id(article_id)
-        return make_response(jsonify({'status': 'success', 'article': article}), 200)
+        return make_response(jsonify({'status': 'success', 'article name': article.name}), 200)
     except Exception as e:
         app.logger.error(f"Error retrieving article: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
@@ -280,15 +280,15 @@ def get_current_article() -> Response:
         app.logger.info(f"Retrieving current article...")
 
         article = JournalModel.get_current_article()
-        return make_response(jsonify({'status': 'success', 'article': article}), 200)
+        return make_response(jsonify({'status': 'success', 'article name': article.name, 'article ID': article.id, 'author': article.author}), 200)
     except Exception as e:
         app.logger.error(f"Error retrieving article: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
     
-@app.route('/project/get-journal-length', methods=['GET'])
-def get_journal_length() -> Response:
+@app.route('/project/get-journal-stats', methods=['GET'])
+def get_journal_stats() -> Response:
     """
-    Route to get the total journal length (number of articles).
+    Route to get the total journal length (number of articles) and duration.
 
     Returns:
         JSON response with the number of articles or error message.
@@ -297,28 +297,11 @@ def get_journal_length() -> Response:
         app.logger.info(f"Retrieving total journal length...")
 
         length = JournalModel.get_journal_length()
-        return make_response(jsonify({'status': 'success', 'length': length}), 200)
-    except Exception as e:
-        app.logger.error(f"Error retrieving length: {e}")
-        return make_response(jsonify({'error': str(e)}), 500)
-    
-@app.route('/project/get-journal-duration', methods=['GET'])
-def get_journal_duration() -> Response:
-    """
-    Route to get the total journal duration (number of seconds).
-
-    Returns:
-        JSON response with the duration or error message.
-    """
-    try:
-        app.logger.info(f"Retrieving total journal duration...")
-
         duration = JournalModel.get_journal_duration()
-        return make_response(jsonify({'status': 'success', 'duration': duration}), 200)
+        return make_response(jsonify({'status': 'success', 'length': length, 'duration': duration}), 200)
     except Exception as e:
-        app.logger.error(f"Error retrieving length: {e}")
+        app.logger.error(f"Error retrieving stats: {e}")
         return make_response(jsonify({'error': str(e)}), 500)
-    
 
 ####################################################
 #
@@ -358,10 +341,10 @@ def clear_catalog() -> Response:
     try:
         app.logger.info('Clearing all articles...')
         Article.clear_catalog()
-        app.logger.info('Database cleared.')
+        app.logger.info('Catalog cleared.')
         return make_response(jsonify({'status': 'success'}), 200)
     except Exception as e:
-        app.logger.error("Failed to clear database: %s", str(e))
+        app.logger.error("Failed to clear catalog: %s", str(e))
         return make_response(jsonify({'error': str(e)}), 500)
     
 @app.route('/project/delete-article/<int:article_id>', methods=['POST'])
@@ -420,25 +403,6 @@ def delete_article_by_num_from_journal(article_num: int) -> Response:
     except Exception as e:
         app.logger.error("Failed to delete article: %s", str(e))
         return make_response(jsonify({'error': str(e)}), 500)
-
-@app.route('/project/read-current-article', methods=['POST'])
-def read_current_article() -> Response:
-    """
-    Route to read the current article
-
-    Returns:
-        JSON response indicating success of the operation.
-    Raises:
-        500 error if there is an issue clearing combatants.
-    """
-    try:
-        app.logger.info(f'Reading current article...')
-        JournalModel.read_current_article()
-        app.logger.info('Article read.')
-        return make_response(jsonify({'status': 'success'}), 200)
-    except Exception as e:
-        app.logger.error("Failed to read article: %s", str(e))
-        return make_response(jsonify({'error': str(e)}), 500)
     
 ####################################################
 #
@@ -465,6 +429,24 @@ def swap_articles(article_id1: int, article_id2: int) -> Response:
         app.logger.error("Failed to swap articles: %s", str(e))
         return make_response(jsonify({'error': str(e)}), 500)
 
+@app.route('/project/read-current-article', methods=['POST'])
+def read_current_article() -> Response:
+    """
+    Route to read the current article
+
+    Returns:
+        JSON response indicating success of the operation.
+    Raises:
+        500 error if there is an issue.
+    """
+    try:
+        app.logger.info(f'Reading current article...')
+        JournalModel.read_current_article()
+        app.logger.info('Article read.')
+        return make_response(jsonify({'status': 'success'}), 200)
+    except Exception as e:
+        app.logger.error("Failed to read article: %s", str(e))
+        return make_response(jsonify({'error': str(e)}), 500)
 
 @app.route('/project/read-entire-journal', methods=['POST'])
 def read_entire_journal() -> Response:
