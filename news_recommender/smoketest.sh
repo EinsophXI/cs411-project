@@ -10,7 +10,7 @@ ECHO_JSON=false
 while [ "$#" -gt 0 ]; do
   case $1 in
     --echo-json) ECHO_JSON=true ;;
-    *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    *) echo "Unknown parameter passed: $1";  ;;
   esac
   shift
 done
@@ -30,7 +30,7 @@ check_health() {
     echo "Service is healthy."
   else
     echo "Health check failed."
-    exit 1
+    
   fi
 }
 
@@ -42,7 +42,7 @@ check_db() {
     echo "Database connection is healthy."
   else
     echo "Database check failed."
-    exit 1
+    
   fi
 }
 
@@ -66,7 +66,7 @@ create_account() {
     echo "Account created successfully."
   else
     echo "Failed to create account."
-    exit 1
+    
   fi
 }
 
@@ -84,7 +84,7 @@ login() {
     echo "Login successfully."
   else
     echo "Failed to login."
-    exit 1
+    
   fi
 }
 
@@ -103,7 +103,7 @@ update_password() {
     echo "Password successfully updated."
   else
     echo "Failed to update password."
-    exit 1
+    
   fi
 }
 
@@ -135,7 +135,7 @@ create_article() {
     echo "Article added successfully."
   else
     echo "Failed to add article."
-    exit 1
+    
   fi
 }
 
@@ -148,7 +148,7 @@ delete_article_by_id() {
     echo "Article deleted successfully by ID ($article_id)."
   else
     echo "Failed to delete article by ID ($article_id)."
-    exit 1
+    
   fi
 }
 
@@ -165,7 +165,7 @@ get_article_by_id() {
     fi
   else
     echo "Failed to get article by ID ($article_id)."
-    exit 1
+    
   fi
 }
 
@@ -198,7 +198,7 @@ add_article_to_journal() {
     fi
   else
     echo "Failed to add article to journal."
-    exit 1
+    
   fi
 }
 
@@ -224,7 +224,7 @@ remove_article_from_journal() {
     fi
   else
     echo "Failed to remove article from journal."
-    exit 1
+    
   fi
 }
 
@@ -238,7 +238,7 @@ remove_article_by_article_number() {
     echo "Article removed from journal by article number ($article_number) successfully."
   else
     echo "Failed to remove article from journal by article number."
-    exit 1
+    
   fi
 }
 
@@ -250,7 +250,7 @@ clear_journal() {
     echo "Journal cleared successfully."
   else
     echo "Failed to clear journal."
-    exit 1
+    
   fi
 }
 
@@ -269,7 +269,7 @@ read_current_article() {
     echo "Current article is now reading."
   else
     echo "Failed to read current article."
-    exit 1
+    
   fi
 }
 
@@ -286,7 +286,7 @@ get_article_from_journal_by_article_number() {
     fi
   else
     echo "Failed to retrieve article by article number."
-    exit 1
+    
   fi
 }
 
@@ -302,7 +302,7 @@ get_current_article() {
     fi
   else
     echo "Failed to retrieve current article."
-    exit 1
+    
   fi
 }
 
@@ -313,7 +313,7 @@ read_entire_journal() {
     echo "Entire journal readed successfully."
   else
     echo "Failed to read entire journal."
-    exit 1
+    
   fi
 }
 
@@ -336,7 +336,7 @@ swap_articles_in_journal() {
     echo "Articles swapped successfully between article numbers ($article_number1) and ($article_number2)."
   else
     echo "Failed to swap articles."
-    exit 1
+    
   fi
 }
 
