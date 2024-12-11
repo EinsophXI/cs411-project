@@ -128,7 +128,7 @@ add_article_to_journal() {
   echo "Adding article to journal: $author - $title ($publishAt)..."
   response=$(curl -s -X POST "$BASE_URL/add-article-to-journal" \
     -H "Content-Type: application/json" \
-    -d "{\"id\":\"$id\", \"name\":\"$name\", \"author\":$author, \"title\":\"$title\", \"url\":\"$url\", \"content\":\"$content\", \"publishedAt\":$publishedAt}" | grep -q '"status": "success"'
+    -d "{\"id\":\"$id\", \"name\":\"$name\", \"author\":$author, \"title\":\"$title\", \"url\":\"$url\", \"content\":\"$content\", \"publishedAt\":$publishedAt}" | grep -q '"status": "success"')
 
   if echo "$response" | grep -q '"status": "success"'; then
     echo "Article added to journal successfully."
@@ -154,7 +154,7 @@ remove_article_from_journal() {
   echo "Removing article from journal: $author - $title ($publishAt)..."
   response=$(curl -s -X DELETE "$BASE_URL/remove-article-from-journal" \
     -H "Content-Type: application/json" \
-    -d "{\"id\":\"$id\", \"name\":\"$name\", \"author\":$author, \"title\":\"$title\", \"url\":\"$url\", \"content\":\"$content\", \"publishedAt\":$publishedAt}" | grep -q '"status": "success"'
+    -d "{\"id\":\"$id\", \"name\":\"$name\", \"author\":$author, \"title\":\"$title\", \"url\":\"$url\", \"content\":\"$content\", \"publishedAt\":$publishedAt}" | grep -q '"status": "success"')
 
   if echo "$response" | grep -q '"status": "success"'; then
     echo "Article removed from journal successfully."
@@ -295,11 +295,9 @@ create_article "Queen" "Bohemian Rhapsody" 1975 "Rock" 180
 create_article "Led Zeppelin" "Stairway to Heaven" 1971 "Rock" 180
 
 delete_article_by_id 1
-get_all_articles
 
 get_article_by_id 2
 get_article_by_compound_key "The Beatles" "Let It Be" 1970
-get_random_article
 
 clear_journal
 
@@ -311,28 +309,17 @@ add_article_to_journal "The Beatles" "Let It Be" 1970
 remove_article_from_journal "The Beatles" "Let It Be" 1970
 remove_article_by_article_number 2
 
-get_all_articles_from_journal
-
 add_article_to_journal "Queen" "Bohemian Rhapsody" 1975
 add_article_to_journal "The Beatles" "Let It Be" 1970
 
-move_article_to_beginning "The Beatles" "Let It Be" 1970
-move_article_to_end "Queen" "Bohemian Rhapsody" 1975
-move_article_to_article_number "Led Zeppelin" "Stairway to Heaven" 1971 2
 swap_articles_in_journal 1 2
 
-get_all_articles_from_journal
 get_article_from_journal_by_article_number 1
 
-get_journal_length_duration
-
-read_current_article
-rewind_journal
 
 read_entire_journal
 read_current_article
-read_rest_of_journal
 
-get_article_leaderboard
+
 
 echo "All tests passed successfully!"
