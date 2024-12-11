@@ -33,22 +33,22 @@ class Article:
 
 
 def create_article(id: int, name: str, author: str, title: str, url: str, content: str, publishedAt: str) -> None:
-    """
-    Creates a new song in the songs table.
+    """Creates a new article in the articles table.
 
     Args:
-        artist (str): The artist's name.
-        title (str): The song title.
-        year (int): The year the song was released.
-        genre (str): The song genre.
-        duration (int): The duration of the song in seconds.
+        id: The unique identifier for the article.
+        name: The name of the article.
+        author: The author's name.
+        title: The title of the article.
+        url: The URL of the article.
+        content: The content of the article.
+        publishedAt: The publication date of the article.
 
     Raises:
-        ValueError: If year or duration are invalid.
-        sqlite3.IntegrityError: If a song with the same compound key (artist, title, year) already exists.
-        sqlite3.Error: For any other database errors.
+        ValueError: If any of the input data is invalid.
+        sqlite3.IntegrityError: If a duplicate article exists.
+        sqlite3.Error: For other database errors.
     """
-    # Validate the required fields
     if not isinstance(publishedAt, str):
         raise ValueError(f"Expected a string for publishedAt, but got {type(publishedAt)}")
     if int(publishedAt.split('-')[0]) < 1900:
@@ -72,12 +72,11 @@ def create_article(id: int, name: str, author: str, title: str, url: str, conten
         logger.error("Article with author '%s', title '%s', and url %s already exists.", author, title, url)
         raise ValueError(f"Article with writer '{name}', title '{title}', and url {url} already exists.") from e
     except sqlite3.Error as e:
-        logger.error("Database error while creating song: %s", str(e))
+        logger.error("Database error while creating article: %s", str(e))
         raise sqlite3.Error(f"Database error: {str(e)}")
 
 def clear_catalog() -> None:
-    """
-    Recreates the article table, effectively deleting all articles.
+    """Recreates the article table, effectively deleting all articles.
 
     Raises:
         sqlite3.Error: If any database error occurs.
@@ -97,21 +96,20 @@ def clear_catalog() -> None:
         raise e
 
 def delete_article(article_id: int) -> None:
-    """
-    Soft deletes an article from the catalog by marking it as deleted.
+    """Marks an article as deleted in the catalog.
 
     Args:
-        song_id (int): The ID of the song to delete.
+        article_id: The ID of the article to delete.
 
     Raises:
-        ValueError: If the song with the given ID does not exist or is already marked as deleted.
+        ValueError: If the article does not exist or is already marked as deleted.
         sqlite3.Error: If any database error occurs.
     """
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
 
-            # Check if the song exists and if it's already deleted
+            # Check if the article exists and if it's already deleted
             cursor.execute("SELECT deleted FROM articles WHERE id = ?", (article_id,))
             try:
                 deleted = cursor.fetchone()[0]
@@ -133,17 +131,17 @@ def delete_article(article_id: int) -> None:
         raise e
 
 def get_article_by_id(article_id: int) -> Article:
-    """
-    Retrieves an article from the catalog by its url.
+    """Retrieves an article from the catalog by its ID.
 
     Args:
-        song_id (int): The ID of the song to retrieve.
+        article_id: The ID of the article to retrieve.
 
     Returns:
-        Song: The Song object corresponding to the song_id.
+        The Article object corresponding to the article_id.
 
     Raises:
-        ValueError: If the song is not found or is marked as deleted.
+        ValueError: If the article is not found or is marked as deleted.
+        sqlite3.Error: If any database error occurs.
     """
     try:
         with get_db_connection() as conn:
@@ -167,28 +165,28 @@ def get_article_by_id(article_id: int) -> Article:
                 raise ValueError(f"Article with ID {article_id} not found")
 
     except sqlite3.Error as e:
-        logger.error("Database error while retrieving song by ID %s: %s", article_id, str(e))
+        logger.error("Database error while retrieving article by ID %s: %s", article_id, str(e))
         raise e
 
 def get_article_by_compound_key(name: str, title: str, url: str) -> Article:
-    """
-    Retrieves a song from the catalog by its compound key (name, author, url).
+    """Retrieves an article from the catalog by its compound key (name, title, url).
 
     Args:
-        artist (str): The artist of the song.
-        title (str): The title of the song.
-        year (int): The year of the song.
+        name: The name associated with the article.
+        title: The title of the article.
+        url: The URL of the article.
 
     Returns:
-        Song: The Song object corresponding to the compound key.
+        The Article object corresponding to the compound key.
 
     Raises:
-        ValueError: If the song is not found or is marked as deleted.
+        ValueError: If the article is not found or is marked as deleted.
+        sqlite3.Error: If any database error occurs.
     """
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            logger.info("Attempting to retrieve song with artist '%s', title '%s', and year %s", name, title, url)
+            logger.info("Attempting to retrieve article with name '%s', title '%s', and url %s", name, title, url)
             cursor.execute("""
                 SELECT id, name, author, title, url, content, publishedAt, deleted
                 FROM articles
@@ -202,11 +200,11 @@ def get_article_by_compound_key(name: str, title: str, url: str) -> Article:
                 logger.info("Article with name %s, title %s, and url %s has been found", name, title, url)
                 return Article(id=row[0], name=row[1], author=row[2], title=row[3], url=row[4], content=row[5], publishedAt=row[6])
             else:
-                logger.info("Song with artist '%s', title '%s', and url %s not found", name, title, url)
-                raise ValueError(f"Song with artist '{name}', title '{title}', and year {url} not found")
+                logger.info("Article with name '%s', title '%s', and url %s not found", name, title, url)
+                raise ValueError(f"Article with artist '{name}', title '{title}', and year {url} not found")
 
     except sqlite3.Error as e:
-        logger.error("Database error while retrieving song by compound key (artist '%s', title '%s', year %s): %s", name, title, url, str(e))
+        logger.error("Database error while retrieving article by compound key (name '%s', title '%s', url %s): %s", name, title, url, str(e))
         raise e
     
 def update_read_count(article_id: int) -> None:
@@ -225,7 +223,7 @@ def update_read_count(article_id: int) -> None:
             cursor = conn.cursor()
             logger.info("Attempting to update read count for article with ID %d", article_id)
 
-            # Check if the song exists and if it's deleted
+            # Check if the article exists and if it's deleted
             cursor.execute("SELECT deleted FROM articles WHERE id = ?", (article_id,))
             try:
                 deleted = cursor.fetchone()[0]
@@ -252,10 +250,10 @@ def get_all_articles(sort_by_id: bool = False) -> list[dict]:
     Retrieves all articles that are not marked as deleted from the catalog.
 
     Args:
-        sort_by_play_count (bool): If True, sort the songs by play count in descending order.
+        sort_by_id (bool): If True, sort the articles by ID in descending order.
 
     Returns:
-        list[dict]: A list of dictionaries representing all non-deleted songs with play_count.
+        list[dict]: A list of dictionaries representing all non-deleted articles.
 
     Logs:
         Warning: If the catalog is empty.
@@ -263,7 +261,7 @@ def get_all_articles(sort_by_id: bool = False) -> list[dict]:
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
-            logger.info("Attempting to retrieve all non-deleted songs from the catalog")
+            logger.info("Attempting to retrieve all non-deleted articles from the catalog")
 
             # Determine the sort order based on the 'sort_by_play_count' flag
             query = """
@@ -293,14 +291,25 @@ def get_all_articles(sort_by_id: bool = False) -> list[dict]:
                 }
                 for row in rows
             ]
-            logger.info("Retrieved %d songs from the catalog", len(articles))
+            logger.info("Retrieved %d articles from the catalog", len(articles))
             return articles
 
     except sqlite3.Error as e:
-        logger.error("Database error while retrieving all songs: %s", str(e))
+        logger.error("Database error while retrieving all articles: %s", str(e))
         raise e
 
 def add_note_to_content(article_id: int, text_to_add: str):
+    """
+    Adds a note to the content of a specific article, either within markers or by creating new ones.
+
+    Args:
+        article_id (int): ID of the article to update.
+        text_to_add (str): The text to be added to the article content.
+
+    Raises:
+        ValueError: If the article does not exist.
+        sqlite3.Error: If any database error occurs.
+    """
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -337,8 +346,19 @@ def add_note_to_content(article_id: int, text_to_add: str):
     except sqlite3.Error as e:
         print(f"Database error: {str(e)}")
 def download_article(article_name: str) -> None:
+    '''
+    Adds an article, found with the name, to the database
 
+    Args:
+    article_name (str): name of article to find
+
+
+    Raises:
+    ValueError: If the article does not exist.
+    sqlite3.Error: If any database error occurs.
     
+    
+    '''
     data = get_articles_info(article_name, 10)
 
     print(data)
