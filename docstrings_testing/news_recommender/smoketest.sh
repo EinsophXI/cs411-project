@@ -288,11 +288,11 @@ check_db
 clear_catalog
 
 # Create articles
-create_article "The Beatles" "Hey Jude" 1968 "Rock" 180
-create_article "The Rolling Stones" "Paint It Black" 1966 "Rock" 180
-create_article "The Beatles" "Let It Be" 1970 "Rock" 180
-create_article "Queen" "Bohemian Rhapsody" 1975 "Rock" 180
-create_article "Led Zeppelin" "Stairway to Heaven" 1971 "Rock" 180
+create_article "1" "Name 1" "Author 1" "Title 1" "URL 1" "Content 1" "Publish Date 1"
+create_article "2" "Name 2" "Author 2" "Title 2" "URL 2" "Content 2" "Publish Date 2"
+create_article "3" "Name 3" "Author 3" "Title 3" "URL 3" "Content 3" "Publish Date 3"
+create_article "4" "Name 4" "Author 4" "Title 4" "URL 4" "Content 4" "Publish Date 4"
+create_article "5" "Name 5" "Author 5" "Title 5" "URL 5" "Content 5" "Publish Date 5"
 
 delete_article_by_id 1
 

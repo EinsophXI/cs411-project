@@ -4,12 +4,17 @@ import os
 import hashlib
 import os
 import binascii
+from dotenv import load_dotenv
+
+from news_recommender.utils.sql_utils import check_database_connection, check_table_exists
 
 from news_recommender.models.article_model import Article
 from news_recommender.models.journal_model import JournalModel
 from news_recommender.models import article_model
 
 journal_model = JournalModel()
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -161,7 +166,28 @@ def healthcheck() -> Response:
         JSON response indicating the health status of the service.
     """
     app.logger.info('Health check')
-    return make_response(jsonify({'status': 'healthy'}), 200)
+    return make_response(jsonify({'status': 'healthy'}), 200) 
+
+@app.route('/api/db-check', methods=['GET'])
+def db_check() -> Response:
+    """
+    Route to check if the database connection and songs table are functional.
+
+    Returns:
+        JSON response indicating the database health status.
+    Raises:
+        404 error if there is an issue with the database.
+    """
+    try:
+        app.logger.info("Checking database connection...")
+        check_database_connection()
+        app.logger.info("Database connection is OK.")
+        app.logger.info("Checking if articles table exists...")
+        check_table_exists("articles")
+        app.logger.info("articles table exists.")
+        return make_response(jsonify({'database_status': 'healthy'}), 200)
+    except Exception as e:
+        return make_response(jsonify({'error': str(e)}), 404)  
 
 #####################################
 
