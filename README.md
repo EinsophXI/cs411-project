@@ -6,6 +6,13 @@ At a high level, our application seeks to provide a user new and recommended art
 
 In a world where current events are widely available, it is important for all demographics - students, teachers, employees, managers, elderly - to stay in touch with the changing landscape. Thus, by using our application, people will easily have articles that are personalized and credible every morning. 
 
+To Run:
+    cd news_recommender
+    ./setup_venv.sh
+    source news_recommender_venv/bin/activate
+    ./run_docker.sh
+    python3 app.py
+
 Routes: 
 
 Route: /create-account
