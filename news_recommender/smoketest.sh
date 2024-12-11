@@ -107,7 +107,7 @@ update_password() {
     
   fi
 }
-"""
+
 ##########################################################
 #
 # Article Management
@@ -343,7 +343,7 @@ swap_articles_in_journal() {
 
 # Health checks
 check_health
-# check_db
+check_db
 
 create_account "Ryan" "123"
 login "Ryan" "123"
