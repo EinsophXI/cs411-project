@@ -168,7 +168,7 @@ def healthcheck() -> Response:
     app.logger.info('Health check')
     return make_response(jsonify({'status': 'healthy'}), 200) 
 
-@app.route('/api/db-check', methods=['GET'])
+@app.route('/project/db-check', methods=['GET'])
 def db_check() -> Response:
     """
     Route to check if the database connection and songs table are functional.
@@ -230,26 +230,26 @@ def create_article() -> Response:
         publishedAt = data.get('publishedAt')
 
 
-        if not id or not name or not author or not title or not url or not content or not publishedAt:
+        if id is None or not all([name, author, title, url, content, publishedAt]):
             return make_response(jsonify({'error': 'Invalid input, all fields are required with valid values'}), 400)
 
-        # Check that publishedAt is in date format and is in DD-MM-YYYY
-        try:
-            days = publishedAt[:2]
-            month = publishedAt[3:5]
-            year = publishedAt[6:]
-            if days < 1 or days > 31:
-                raise ValueError("Enter valid day")
-            if month < 1 or month > 12:
-                raise ValueError("Enter a valid month")
-            if year < 2025:
-                raise ValueError("Please enter a date in the past")
-        except ValueError as e:
-            return make_response(jsonify({'error': 'Please enter your date in correct format: DD-MM-YYYY'}), 400)
+        # # Check that publishedAt is in date format and is in DD-MM-YYYY
+        # try:
+        #     days = publishedAt[:2]
+        #     month = publishedAt[3:5]
+        #     year = publishedAt[6:]
+        #     if days < 1 or days > 31:
+        #         raise ValueError("Enter valid day")
+        #     if month < 1 or month > 12:
+        #         raise ValueError("Enter a valid month")
+        #     if year < 2025:
+        #         raise ValueError("Please enter a date in the past")
+        # except ValueError as e:
+        #     return make_response(jsonify({'error': 'Please enter your date in correct format: DD-MM-YYYY'}), 400)
 
         # Call the kitchen_model function to add the combatant to the database
-        app.logger.info('Adding article: %s, %s, %s, %s, %s, %s', name, author, title, url, content, publishedAt)
-        article_model.create_article(name, author, title, url, content, publishedAt)
+        app.logger.info('Adding article: %s, %s, %s, %s, %s, %s, %s', id, name, author, title, url, content, publishedAt)
+        article_model.create_article(id, name, author, title, url, content, publishedAt)
 
         app.logger.info("Article added: %s", name)
         return make_response(jsonify({'status': 'success', 'message': 'Articles retrieved successfully','article name': name}), 201)
@@ -257,7 +257,7 @@ def create_article() -> Response:
         app.logger.error("Failed to add article: %s", str(e))
         return make_response(jsonify({'error': str(e)}), 500)
     
-@app.route('/api/add-article-to-journal', methods=['POST'])
+@app.route('/project/add-article-to-journal', methods=['POST'])
 def add_article_to_journal() -> Response:
     """
     Route to add a article to the journal by compound key (author, title, url).

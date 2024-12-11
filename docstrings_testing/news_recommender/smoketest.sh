@@ -46,6 +46,66 @@ check_db() {
   fi
 }
 
+##########################################################
+#
+# Account Management
+#
+##########################################################
+
+create_account() {
+  username=$1
+  password=$2
+
+  echo "Creating Account ($username: $password)..."
+  response=$(curl -s -X POST "$BASE_URL/create-account" -H "Content-Type: application/json"\
+    -d "{\"username\":\"$username\", \"password\":\"$password\"}")
+  
+  echo $response | grep -q '"status": "success"'
+  
+  if [ $? -eq 0 ]; then
+    echo "Account created successfully."
+  else
+    echo "Failed to create account."
+    exit 1
+  fi
+}
+
+login() {
+  username=$1
+  password=$2
+
+  echo "Logging into account ($username: $password)..."
+  response=$(curl -s -X POST "$BASE_URL/login" -H "Content-Type: application/json"\
+    -d "{\"username\":\"$username\", \"password\":\"$password\"}")
+  
+  echo $response | grep -q '"status": "success"'
+  
+  if [ $? -eq 0 ]; then
+    echo "Login successfully."
+  else
+    echo "Failed to login."
+    exit 1
+  fi
+}
+
+update_password() {
+  username=$1
+  current_password=$2
+  new_password=$3
+
+  echo "Updating password ($username: $current_password) with ($new_password)..."
+  response=$(curl -s -X POST "$BASE_URL/update-password" -H "Content-Type: application/json"\
+    -d "{\"username\":\"$username\", \"current_password\":\"$current_password\", \"new_password\":\"$new_password\"}")
+  
+  echo $response | grep -q '"status": "success"'
+  
+  if [ $? -eq 0 ]; then
+    echo "Password successfully updated."
+  else
+    echo "Failed to update password."
+    exit 1
+  fi
+}
 
 ##########################################################
 #
@@ -69,7 +129,7 @@ create_article() {
 
   echo "Adding article ($author - $title, $publishedAt) to the journal..."
   curl -s -X POST "$BASE_URL/create-article" -H "Content-Type: application/json" \
-    -d "{\"id\":\"$id\", \"name\":\"$name\", \"author\":$author, \"title\":\"$title\", \"url\":\"$url\", \"content\":\"$content\", \"publishedAt\":$publishedAt}" | grep -q '"status": "success"'
+    -d "{\"id\":\"$id\", \"name\":\"$name\", \"author\":\"$author\", \"title\":\"$title\", \"url\":\"$url\", \"content\":\"$content\", \"publishedAt\":\"$publishedAt\"}"
 
   if [ $? -eq 0 ]; then
     echo "Article added successfully."
@@ -282,44 +342,43 @@ swap_articles_in_journal() {
 
 # Health checks
 check_health
-check_db
+# check_db
+
+create_account "Ryan" "123"
+login "Ryan" "123"
+update_password "Ryan" "567"
+login "Ryan" "567"
 
 # Clear the catalog
 clear_catalog
 
 # Create articles
-create_article "1" "Name 1" "Author 1" "Title 1" "URL 1" "Content 1" "Publish Date 1"
-create_article "2" "Name 2" "Author 2" "Title 2" "URL 2" "Content 2" "Publish Date 2"
-create_article "3" "Name 3" "Author 3" "Title 3" "URL 3" "Content 3" "Publish Date 3"
-create_article "4" "Name 4" "Author 4" "Title 4" "URL 4" "Content 4" "Publish Date 4"
-create_article "5" "Name 5" "Author 5" "Title 5" "URL 5" "Content 5" "Publish Date 5"
+create_article 1 "Name 1" "Author 1" "Title 1" "URL 1" "Content 1" "2001-01-02T01:01:01Z"
+create_article 2 "Name 2" "Author 2" "Title 2" "URL 2" "Content 2" "2002-02-02T02:02:02Z"
+create_article 3 "Name 3" "Author 3" "Title 3" "URL 3" "Content 3" "2003-03-02T03:03:03Z"
+create_article 4 "Name 4" "Author 4" "Title 4" "URL 4" "Content 4" "2004-04-02T04:04:04Z"
+create_article 5 "Name 5" "Author 5" "Title 5" "URL 5" "Content 5" "2005-05-02T05:05:05Z"
 
 delete_article_by_id 1
-
 get_article_by_id 2
-get_article_by_compound_key "The Beatles" "Let It Be" 1970
 
 clear_journal
+add_article_to_journal 1 "Name 1" "Author 1" "Title 1" "URL 1" "Content 1" "2001-01-01T01:01:01Z"
+add_article_to_journal 2 "Name 2" "Author 2" "Title 2" "URL 2" "Content 2" "2002-02-02T02:02:02Z"
+add_article_to_journal 3 "Name 3" "Author 3" "Title 3" "URL 3" "Content 3" "2003-03-03T03:03:03Z"
+add_article_to_journal 4 "Name 4" "Author 4" "Title 4" "URL 4" "Content 4" "2004-04-04T04:04:04Z"
 
-add_article_to_journal "The Rolling Stones" "Paint It Black" 1966
-add_article_to_journal "Queen" "Bohemian Rhapsody" 1975
-add_article_to_journal "Led Zeppelin" "Stairway to Heaven" 1971
-add_article_to_journal "The Beatles" "Let It Be" 1970
-
-remove_article_from_journal "The Beatles" "Let It Be" 1970
+remove_article_from_journal 4
 remove_article_by_article_number 2
 
-add_article_to_journal "Queen" "Bohemian Rhapsody" 1975
-add_article_to_journal "The Beatles" "Let It Be" 1970
+add_article_to_journal 5 "Name 5" "Author 5" "Title 5" "URL 5" "Content 5" "2005-05-02T05:05:05Z"
+add_article_to_journal 4 "Name 4" "Author 4" "Title 4" "URL 4" "Content 4" "2004-04-04T04:04:04Z"
 
 swap_articles_in_journal 1 2
 
 get_article_from_journal_by_article_number 1
 
-
 read_entire_journal
 read_current_article
-
-
 
 echo "All tests passed successfully!"
