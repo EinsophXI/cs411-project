@@ -1,4 +1,4 @@
-This is the README.md file for our CS 411 Project containing a high level overview of the project. 
+# This is the README.md file for our CS 411 Project containing a high level overview of the project. 
 
 Contributors: Alexander Cobb, Brian Sull, Ryan Hwang
 
@@ -6,10 +6,11 @@ At a high level, our application seeks to provide a user new and recommended art
 
 In a world where current events are widely available, it is important for all demographics - students, teachers, employees, managers, elderly - to stay in touch with the changing landscape. Thus, by using our application, people will easily have articles that are personalized and credible every morning. 
 
-Remaining issues:
-    When wrapping up the assignment with the smoke test, we encountered errors when accessing the database and could not resolve those issues (We believe it has to do with the way we approached databases with SQLAlchemy). Therefore, issues remain with account creation and the storage and access of elements.
+# Remaining issues:
+
+When wrapping up the assignment with the smoke test, we encountered errors when accessing the database and could not resolve those issues (We believe it has to do with the way we approached databases with SQLAlchemy). Therefore, issues remain with account creation and the storage and access of elements.
     
-Routes: 
+# Routes: 
 
 Route: /create-account
     ● Request Type: POST
