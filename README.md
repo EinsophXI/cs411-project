@@ -13,6 +13,7 @@ When wrapping up the assignment with the smoke test, we encountered errors when 
 # Routes: 
 
 Route: /create-account
+
     ● Request Type: POST
     ● Purpose: Creates a new user account with a username and password.
     ● Request Body:
@@ -34,6 +35,7 @@ Route: /create-account
         }
 
 Route: /login
+
     ● Request Type: GET
     ● Purpose: Logs in user based on a password that matches the password created when the account was created.
     ● Request Body:
@@ -55,6 +57,7 @@ Route: /login
         }
 
 Route: /update-password
+
     ● Request Type: POST
     ● Purpose: Creates a new password for a given username.
     ● Request Body:
@@ -76,6 +79,7 @@ Route: /update-password
         }
 
 Route: /get-unique-article
+
     ● Request Type: GET
     ● Purpose: User reads a unique article, and this history is recorded in the system.
     ● Request Body:
@@ -100,6 +104,7 @@ Route: /get-unique-article
         }
 
 Route: /get-articles-by-author
+
     ● Request Type: GET
     ● Purpose: User searches for articles based on the author.
     ● Request Body:
@@ -125,6 +130,7 @@ Route: /get-articles-by-author
         }
 
 Route: /get-articles-written-on-date
+
     ● Request Type: GET
     ● Purpose: User searches for articles written on a date.
     ● Request Body:
@@ -149,6 +155,7 @@ Route: /get-articles-written-on-date
         }
 
 Route: /favorite-article
+
     ● Request Type: GET
     ● Purpose: User retrieves favorite, or most viewed/read, article.
     ● Request Body:
@@ -168,6 +175,7 @@ Route: /favorite-article
         }
 
 Route: /favorite-author
+
     ● Request Type: GET
     ● Purpose: User retrieves favorite, or most viewed/read, author.
     ● Request Body:
@@ -187,6 +195,7 @@ Route: /favorite-author
         }
 
 Route: /save-article
+
     ● Request Type: POST
     ● Purpose: User saves an article.
     ● Request Body:
@@ -211,6 +220,7 @@ Route: /save-article
         }
 
 Route: /delete-article-from-saved
+
     ● Request Type: DELETE
     ● Purpose: User saves an article.
     ● Request Body:
@@ -235,6 +245,7 @@ Route: /delete-article-from-saved
         }
 
 Route: /recommend-articles
+
     ● Request Type: GET
     ● Purpose: Application recommends articles to user based on saved preferences
     ● Request Body:
