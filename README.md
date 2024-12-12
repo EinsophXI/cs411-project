@@ -6,13 +6,9 @@ At a high level, our application seeks to provide a user new and recommended art
 
 In a world where current events are widely available, it is important for all demographics - students, teachers, employees, managers, elderly - to stay in touch with the changing landscape. Thus, by using our application, people will easily have articles that are personalized and credible every morning. 
 
-To Run:
-    cd news_recommender
-    ./setup_venv.sh
-    source news_recommender_venv/bin/activate
-    ./run_docker.sh
-    python3 app.py
-
+Remaining issues:
+    When wrapping up the assignment with the smoke test, we encountered errors when accessing the database and could not resolve those issues (We believe it has to do with the way we approached databases with SQLAlchemy). Therefore, issues remain with account creation and the storage and access of elements.
+    
 Routes: 
 
 Route: /create-account
